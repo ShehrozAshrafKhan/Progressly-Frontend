@@ -1,0 +1,25 @@
+
+.sidebar {
+          width: 300px;
+          height: calc(100vh - 56px);
+          position: fixed;
+          top: 56px;
+          left: -250px;
+          z-index: 1000;
+          transition: left 0.3s ease;
+          overflow-y: auto;
+        }
+
+        .sidebar-open {
+          left: 0;
+        }
+
+        .sidebar-overlay {
+          position: fixed;
+          top: 56px;
+          left: 0;
+          width: 100%;
+          height: calc(100vh - 56px);
+          background-color: rgba(0, 0, 0, 0.5);
+          z-index: 999;
+        }

@@ -1,0 +1,1527 @@
+import React, { useState, useEffect, useRef } from "react";
+import { ShowMessage } from "../../Components/Common/ShowMessage";
+import axios from "axios";
+import config from "../../config";
+import { useNavigate, useParams } from "react-router-dom";
+import { IoMdArrowRoundBack } from "react-icons/io";
+import Layout from "../../layouts/Layout";
+import { useUser } from "../../contexts/UserContext";
+
+type Module = {
+  projectId: string;
+  moduleId: string;
+  description: string;
+  isActive: boolean;
+  moduleName: string;
+  projectName: string;
+};
+
+type User = {
+  email: string;
+  userId: string;
+  userName: string;
+};
+type TaskAttachment = {
+  taskAttachmentId: string;
+  taskId: string;
+  fileName: string;
+};
+
+type Tag = {
+  tagId: string;
+  tagName: string;
+  isActive: boolean;
+};
+type CodeInputType = {
+  taskCodeChangeId?: string;
+  type: "file" | "text" | null;
+  oldFileName?: string;
+  oldExtension?: string;
+  oldFilePath?: string;
+  newFileName?: string;
+  newExtension?: string;
+  newFilePath?: string;
+  showOld?: boolean;
+  showNew?: boolean;
+  // ...other properties
+};
+
+const EditTask = () => {
+  const { user } = useUser();
+  const userRole = user?.roles[0];
+  const [isCompletedRequest, setIsCompletedRequest] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [assignedTags, setAssignedTags] = useState<Tag[]>([]);
+  const [assignedUsers, setAssignedUsers] = useState<User[]>([]);
+  const [taskAttachments, setTaskAttachments] = useState<TaskAttachment[]>([]);
+  let params = useParams();
+  const navigate = useNavigate();
+  const handleBack = () => {
+   userRole!=="USER"?navigate("/tasks"):navigate("/tasks/userTasksDetail/ALL")
+  };
+
+  const [tblData, setTblData] = useState<Module[]>([]);
+  const [file, setFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [existingFileName, setExistingFileName] = useState<string>("");
+  const [requireCodeUpload, setRequireCodeUpload] = useState(false);
+  const status = ["PENDING", "IN_PROGRESS", "COMPLETED"];
+  const priority = ["LOW", "MEDIUM", "HIGH"];
+  const [codeInputs, setCodeInputs] = useState<{
+    [tagId: string]: {
+      taskCodeChangeId?: string;
+      type: "file" | "text" | null;
+      oldFile?: File | null;
+      newFile?: File | null;
+      oldFileName?: string;
+      oldFilePath?: string;
+      oldExtension?: string;
+      oldCode?: string;
+      newFileName?: string;
+      newExtension?: string;
+      newFilePath?: string;
+      newCode?: string;
+      showOld?: boolean;
+      showNew?: boolean;
+    }[];
+  }>({});
+
+  const [formData, setFormData] = useState({
+    title: "",
+    taskNo: "",
+    isActive:false,
+    description: "",
+    status: "PENDING",
+    priority: "LOW",
+    estimatedHours: 0,
+    moduleId: "",
+    dueDate: "" as string | null,
+  });
+
+  const [formTaskAssignee, setFormTaskAssignee] = useState({
+    taskId: "",
+    assignedby: "",
+  });
+
+  const [usersByIds, setUsersByIds] = useState({
+    moduleId: "",
+    userIds: [""],
+  });
+
+  useEffect(() => {
+    handleGetTask();
+    handleGetModules();
+    handleGetTags();
+    handleGetUploadedFiles();
+  }, []);
+
+  const handleGetUploadedFiles = async () => {
+    try {
+      const res = await axios.get(
+        `${config.baseUrl}TaskCodeChanges/GetTaskCodeChangesByTaskId`,
+        {
+          params: { taskId: params.taskId },
+        }
+      );
+
+      const grouped: Record<string, CodeInputType[]> = {};
+
+      for (const change of res.data.data) {
+        const tagId = change.tagId;
+        if (!grouped[tagId]) grouped[tagId] = [];
+
+        grouped[tagId].push({
+          taskCodeChangeId: change.taskCodeChangeId,
+          type: change.entryType,
+          oldFileName: change.oldFileName,
+          oldExtension: change.oldExtension,
+          newFileName: change.newFileName,
+          newExtension: change.newExtension,
+          oldFilePath: change.oldFilePath,
+          newFilePath: change.newFilePath,
+          showOld: true,
+          showNew: true,
+        });
+      }
+      console.log(grouped);
+      setCodeInputs(grouped);
+    } catch (err) {
+      console.error("Failed to load uploaded files", err);
+    }
+  };
+  const handleGetTags = async () => {
+    try {
+      const url = `${config.baseUrl}Tags/GetActiveTags`;
+      const response = await axios.get(url);
+      if (response?.data?.result?.succeeded) {
+        setTags(response.data.data);
+      } else {
+        ShowMessage(
+          2,
+          response?.data?.result?.errors?.[0] || "No Tags data found."
+        );
+      }
+    } catch (e: any) {
+      ShowMessage(2, e.message || "Error fetching Tags.");
+    }
+  };
+
+  const handleGetTask = async () => {
+    try {
+      const url = `${config.baseUrl}Tasks/GetTaskById?taskId=${params.taskId}`;
+      const response = await axios.get(url);
+      if (response?.data?.result?.succeeded) {
+        setFormData(response.data.data);
+        const taskData = response.data.data;
+        console.log(taskData);
+        if (taskData.assignees && taskData.assignees.length > 0) {
+          setFormTaskAssignee({
+            taskId: taskData.taskId,
+            assignedby: taskData.assignees[0].assignedBy,
+          });
+        }
+        setIsCompletedRequest(taskData.isCompletedRequest);
+        const currentUserId = user?.userId ?? "";
+        const assignedByIds =
+          taskData.assignees?.map((assignee: any) => assignee.assignedBy) || [];
+        setUsersByIds({
+          moduleId: taskData.moduleId,
+          userIds: [currentUserId, ...assignedByIds],
+        });
+        if (taskData.attachments && taskData.attachments.length > 0) {
+          setExistingFileName(taskData.attachments[0].fileName);
+        }
+        setTaskAttachments(taskData.attachments);
+        if (user?.roles[0] !== "USER") {
+          setAssignedUsers(
+            taskData.assignees?.map((a: any) => ({
+              userId: a.assignedBy,
+              userName: a.assignedUserName,
+            })) || []
+          );
+        }
+        if (taskData.taskTags && taskData.taskTags.length > 0) {
+          setAssignedTags(
+            taskData.taskTags.map((tag: any) => ({
+              tagId: tag.tagId,
+              tagName: tag.tagName,
+            }))
+          );
+        }
+      } else {
+        ShowMessage(
+          2,
+          response?.data?.result?.errors?.[0] || "No Task data found."
+        );
+      }
+    } catch (e: any) {
+      ShowMessage(2, e.message || "Error fetching Task.");
+    }
+  };
+
+  useEffect(() => {
+    if (usersByIds.moduleId && usersByIds.userIds.length > 0) {
+      if (user?.roles[0] !== "USER") {
+        handleGetAllActiveUsers(usersByIds.moduleId);
+      } else {
+        handleGetAssignedUsers();
+      }
+    }
+  }, [usersByIds, user]);
+
+  const handleGetAssignedUsers = async () => {
+    try {
+      const payload = {
+        moduleId: usersByIds.moduleId,
+        userIds: usersByIds.userIds, // lowercase!
+      };
+      const url = `${config.baseUrl}Users/GetUserByIds`;
+      console.log(payload);
+      const response = await axios.post(url, payload);
+      if (response?.data?.result?.succeeded) {
+        setUsers(response.data.data);
+      } else {
+        ShowMessage(
+          2,
+          response?.data?.result?.errors?.[0] || "No TaskAssignee data found."
+        );
+      }
+    } catch (e: any) {
+      ShowMessage(2, e.message || "Error fetching TaskAssignee.");
+    }
+  };
+
+  const handleGetAllActiveUsers = async (moduleId: string) => {
+    try {
+      const url = `${config.baseUrl}Users/GetUsersByModuleId?moduleId=${moduleId}`;
+      const response = await axios.get(url);
+      if (response?.data?.result?.succeeded) {
+        setUsers(response.data.data);
+      } else {
+        ShowMessage(
+          2,
+          response?.data?.result?.errors?.[0] || "No user data found."
+        );
+      }
+    } catch (e: any) {
+      ShowMessage(2, e.message || "Error fetching users.");
+    }
+  };
+
+  const handleGetModules = async () => {
+    try {
+      const url = `${config.baseUrl}Modules/GetModules`;
+      const response = await axios.get(url);
+      if (response?.data?.result?.succeeded) {
+        setTblData(response.data.data);
+      } else {
+        ShowMessage(
+          2,
+          response?.data?.result?.errors?.[0] || "No module data found."
+        );
+      }
+    } catch (e: any) {
+      ShowMessage(2, e.message || "Error fetching modules.");
+    }
+  };
+
+  const handleInputChange = (e: any) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === "moduleId" && value != "") {
+      const moduleId = value;
+      handleGetAllActiveUsers(moduleId);
+    }
+  };
+  const handleUserInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    const key = name as keyof typeof formTaskAssignee;
+
+    setFormTaskAssignee((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+
+    const selectedUser = users.find((u) => u.userId === value);
+
+    if (!selectedUser) return;
+
+    // Check role
+    const isUserRole = user?.roles?.[0]?.toLowerCase() === "user";
+
+    if (isUserRole) {
+      // USER: keep existing logic
+      const otherUsers = users.filter((u) => u.userId !== selectedUser.userId);
+      const newAssignedUsers = [selectedUser, ...otherUsers];
+      setAssignedUsers(newAssignedUsers);
+    } else {
+      // Admin/Other roles: only add if selectedUser exists in current assignedUsers list
+      const alreadyAssigned = assignedUsers.find(
+        (u) => u.userId === selectedUser.userId
+      );
+
+      if (!alreadyAssigned) {
+        setAssignedUsers((prev) => [...prev, selectedUser]);
+      }
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.length) {
+      setFile(e.target.files[0]);
+    }
+    setExistingFileName("");
+  };
+
+  const handleClear = () => {
+    setFormData({
+      title: "",
+      taskNo: "",
+      description: "",
+      isActive:false,
+      status: "PENDING",
+      priority: "LOW",
+      estimatedHours: 0,
+      moduleId: "",
+      dueDate: "",
+    });
+    setFormTaskAssignee({ taskId: "", assignedby: "" });
+    setFile(null);
+    setExistingFileName("");
+    setAssignedUsers([]);
+    setAssignedTags([]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    try {
+      const preparedData = {
+        ...formData,
+        dueDate: formData.dueDate === "" ? null : formData.dueDate,
+      };
+      console.log(preparedData);
+      const url = `${config.baseUrl}Tasks/UpdateTask`;
+      const response = await axios.patch(url, preparedData);
+
+      if (response.data.result.succeeded) {
+        const taskId = response.data.data;
+        ShowMessage(1, "Task added successfully");
+
+        if (file && taskId) {
+          const existingAttachmentId =
+            taskAttachments.length > 0
+              ? taskAttachments[0].taskAttachmentId
+              : "";
+          const formDataFile = new FormData();
+          formDataFile.append("File", file);
+          formDataFile.append("TaskAttachmentId", existingAttachmentId);
+          formDataFile.append("taskId", taskId);
+          const fileUploadUrl = `${config.baseUrl}TaskAttachments/UpdateTaskAttachments`;
+          const uploadResponse = await axios.patch(
+            fileUploadUrl,
+            formDataFile,
+            {
+              headers: { "Content-Type": "multipart/form-data" },
+            }
+          );
+          if (uploadResponse.data.result.succeeded) {
+            ShowMessage(1, "File uploaded successfully");
+          } else {
+            ShowMessage(2, "Task saved, but file upload failed");
+          }
+        }
+        if (assignedUsers.length > 0 && taskId) {
+          const assignUrl = `${config.baseUrl}TaskAssignee/UpdateTaskAssignee`;
+          const assignBody = {
+            taskId,
+            assignedBy: assignedUsers.map((user) => user.userId),
+          };
+          await axios.patch(assignUrl, assignBody);
+        }
+        if (isCompletedRequest && taskId) {
+          try {
+            const completeUrl = `${config.baseUrl}Tasks/UpdateTaskStatus`;
+            const completeBody = {
+              taskId,
+              isCompletedRequest: true,
+            };
+
+            const completeResponse = await axios.patch(
+              completeUrl,
+              completeBody
+            );
+
+            if (completeResponse.data.result.succeeded) {
+              ShowMessage(1, "Completed task request sent to admin");
+            } else {
+              ShowMessage(
+                2,
+                completeResponse.data.result.errors[0] ||
+                  "Failed to send completion request"
+              );
+            }
+          } catch (err: any) {
+            ShowMessage(2, err.message || "Error sending completion request");
+          }
+        }
+        if (assignedTags.length > 0 && taskId) {
+          const saveTagsUrl = `${config.baseUrl}TaskTag/SaveTaskTag`;
+          const tagPayload = {
+            taskId,
+            tagIds: assignedTags.map((tag) => tag.tagId),
+          };
+
+          try {
+            const tagResponse = await axios.post(saveTagsUrl, tagPayload);
+            if (tagResponse.data.result.succeeded) {
+              ShowMessage(1, "Tags saved successfully");
+            } else {
+              ShowMessage(
+                2,
+                tagResponse.data.result.errors?.[0] || "Failed to save tags"
+              );
+            }
+          } catch (error: any) {
+            ShowMessage(2, error.message || "Error saving tags");
+          }
+        }
+
+        handleClear();
+      } else {
+        ShowMessage(2, response.data.result.errors[0] || "Error saving task");
+      }
+    } catch (err: any) {
+      ShowMessage(2, err.message || "Error saving task");
+    }
+  };
+
+  const handleRemoveAssignedUser = (userId: string) => {
+    setAssignedUsers((prev) => prev.filter((user) => user.userId !== userId));
+  };
+
+  const handleSubmitCodeChanings = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const formData = new FormData();
+    formData.append("taskId", `${params.taskId}`); // Or whatever your taskId is
+
+    // Loop through each tag
+    Object.entries(codeInputs).forEach(([tagId, entries]) => {
+      entries.forEach((entry, idx) => {
+        const prefix = `${tagId}_${idx}`; // Unique per tag/row
+
+        console.log("Entry Type", entry.type);
+        // === FILE MODE ===
+        if (entry.type === "file") {
+          if (entry.oldFile) {
+            formData.append(`${prefix}_oldFile`, entry.oldFile);
+          }
+          if (entry.newFile) {
+            formData.append(`${prefix}_newFile`, entry.newFile);
+          }
+        }
+
+        // === TEXT MODE ===
+        if (entry.type === "text") {
+          // Create old file from text
+          if (entry.oldCode && entry.oldFileName && entry.oldExtension) {
+            const oldBlob = new Blob([entry.oldCode], { type: "text/plain" });
+            const oldFile = new File(
+              [oldBlob],
+              `${entry.oldFileName}${entry.oldExtension}`,
+              { type: "text/plain" }
+            );
+            formData.append(`${prefix}_oldFile`, oldFile);
+          }
+
+          // Create new file from text
+          if (entry.newCode && entry.newFileName && entry.newExtension) {
+            const newBlob = new Blob([entry.newCode], { type: "text/plain" });
+            const newFile = new File(
+              [newBlob],
+              `${entry.newFileName}${entry.newExtension}`,
+              { type: "text/plain" }
+            );
+            formData.append(`${prefix}_newFile`, newFile);
+          }
+        }
+
+        // Send metadata if needed (tagId, type, etc.)
+        if (entry.taskCodeChangeId) {
+          formData.append(`${prefix}_taskCodeChangeId`, entry.taskCodeChangeId);
+        }
+        formData.append(`${prefix}_tagId`, tagId);
+        formData.append(`${prefix}_type`, entry.type ?? "");
+        formData.append(
+          `${prefix}_isNew`,
+          entry.taskCodeChangeId ? "false" : "true"
+        );
+      });
+    });
+
+    try {
+      for (let pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
+      }
+      const response = await axios.post(
+        `${config.baseUrl}TaskCodeChanges/UploadTaskCodeChanges`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (response.data.result.succeeded) {
+        ShowMessage(1, "Code changes uploaded successfully.");
+      } else {
+        ShowMessage(2, response.data.result.errors?.[0] || "Upload failed.");
+      }
+    } catch (err: any) {
+      ShowMessage(2, err.message || "Error uploading code changes.");
+    }
+  };
+
+  const handleDownloadFile = async (
+    taskCodeChangeId?: string,
+    fileName?: string,
+    fileType?: string
+  ) => {
+    try {
+      const isDownload = window.confirm(
+        `Do you want to download the file "${fileName}"?\nClick "Cancel" to just view it.`
+      );
+
+      const response = await axios.get(
+        `${config.baseUrl}TaskCodeChanges/GetTaskCodeChangeFile`,
+        {
+          responseType: "blob",
+          params: {
+            taskCodeChangeId,
+            fileName,
+            fileType,
+          },
+        }
+      );
+
+      const blob = new Blob([response.data], {
+        type: response.headers["content-type"],
+      });
+      const fileUrl = window.URL.createObjectURL(blob);
+
+      if (isDownload) {
+        // Download logic
+        const link = document.createElement("a");
+        link.href = fileUrl;
+        link.download = fileName ?? "file";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } else {
+        // View in new tab (image/pdf/etc.)
+        window.open(fileUrl, "_blank");
+      }
+
+      // Clean up memory
+      window.URL.revokeObjectURL(fileUrl);
+    } catch (error) {
+      console.error("File view/download failed:", error);
+      ShowMessage(2, "Failed to view or download the file.");
+    }
+  };
+
+  return (
+    <Layout>
+      <div className="card shadow-sm p-5">
+        <div className="d-flex gap-3 align-items-center mb-3">
+          <IoMdArrowRoundBack
+            fontSize={30}
+            onClick={handleBack}
+            className="cursor-pointer"
+          />
+          <h2 className="">Edit Task</h2>
+        </div>
+        <form className="form" onSubmit={handleSubmit}>
+          <div className="p-5 border rounded-3 card shadow-sm">
+            <div className="row g-3 mb-3">
+              <div className="col-md-2">
+                <label className="form-label fw-bold">Task No</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="taskNo"
+                  value={formData.taskNo}
+                  onChange={handleInputChange}
+                  disabled={userRole == "USER" ? true : false}
+                />
+              </div>
+              <div className="col-md-5">
+                <label className="form-label fw-bold">Title</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="col-md-5">
+                <label className="form-label fw-bold">Description</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </div>
+
+            <div className="row g-3 mb-3">
+              <div className="col-md-3">
+                <label className="form-label fw-bold">Estimated Hours</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  name="estimatedHours"
+                  value={formData.estimatedHours}
+                  onChange={handleInputChange}
+                  disabled={userRole == "USER" ? true : false}
+                />
+              </div>
+              <div className="col-md-3">
+                <label className="form-label fw-bold">Status</label>
+                <select
+                  name="status"
+                  className="form-select"
+                  value={formData.status}
+                  onChange={handleInputChange}
+                >
+                  <option value="" disabled>
+                    Select Status
+                  </option>
+                  {status.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="col-md-3">
+                <label className="form-label fw-bold">Priority</label>
+                <select
+                  name="priority"
+                  className="form-select"
+                  value={formData.priority}
+                  onChange={handleInputChange}
+                >
+                  <option value="" disabled>
+                    Select Priority
+                  </option>
+                  {priority.map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="col-md-3">
+                <label className="form-label fw-bold">Due Date</label>
+                <input
+                  type="datetime-local"
+                  className="form-control"
+                  name="dueDate"
+                  value={formData.dueDate || ""}
+                  onChange={handleInputChange}
+                  disabled={userRole == "USER" ? true : false}
+                />
+              </div>
+            </div>
+
+            <div className="row g-3">
+              <div className="col-md-3">
+                <label className="form-label fw-bold">Module</label>
+                <select
+                  name="moduleId"
+                  className="form-select"
+                  value={formData.moduleId}
+                  onChange={handleInputChange}
+                >
+                  <option value="">Select Module</option>
+                  {tblData.map((mod) => (
+                    <option key={mod.moduleId} value={mod.moduleId}>
+                      {mod.moduleName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="col-md-3">
+                <label className="form-label fw-bold">Attachment</label>
+                <div className="position-relative">
+                  <input
+                    type="file"
+                    className="form-control"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    style={{
+                      display: file || !existingFileName ? "block" : "none",
+                    }}
+                  />
+                  {existingFileName && !file && (
+                    <div>
+                      <input
+                        type="text"
+                        className="form-control mb-2"
+                        value={existingFileName}
+                        readOnly
+                        style={{
+                          backgroundColor: "#f8f9fa",
+                          cursor: "not-allowed",
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-secondary"
+                        onClick={() => {
+                          if (fileInputRef.current) {
+                            fileInputRef.current.style.display = "block";
+                            fileInputRef.current.click();
+                          }
+                        }}
+                      >
+                        Change File
+                      </button>
+                    </div>
+                  )}
+                  {file && (
+                    <div className="mt-2">
+                      <small className="text-success d-block">
+                        New file selected: <strong>{file.name}</strong>
+                      </small>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-danger mt-1"
+                        onClick={() => {
+                          setFile(null);
+                          if (fileInputRef.current) {
+                            fileInputRef.current.value = "";
+                            fileInputRef.current.style.display =
+                              existingFileName ? "none" : "block";
+                          }
+                        }}
+                      >
+                        Remove New File
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="col-md-3">
+                <label className="form-label fw-bold">Assign To</label>
+                <select
+                  name="assignedby"
+                  className="form-select"
+                  value={formTaskAssignee.assignedby}
+                  onChange={handleUserInputChange}
+                >
+                  <option value="" disabled>
+                    Select User
+                  </option>
+                  {users.map((u) => {
+                    const isAssigned = assignedUsers.some(
+                      (assigned) => assigned.userId === u.userId
+                    );
+
+                    const isUserRole =
+                      user?.roles?.[0]?.toLowerCase() === "user";
+
+                    return (
+                      <option
+                        key={u.userId}
+                        value={u.userId}
+                        disabled={isUserRole && u.userId !== user?.userId}
+                        style={{
+                          backgroundColor:
+                            !isUserRole && isAssigned ? "#28a745" : undefined,
+                          color: !isUserRole && isAssigned ? "#fff" : undefined,
+                        }}
+                      >
+                        {u.userName}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              {assignedUsers.length > 0 && (
+                <div className="col-md-3">
+                  <label className="form-label fw-bold">Assignee's</label>
+                  <div
+                    className="form-control d-flex flex-wrap gap-1"
+                    style={{ minHeight: "40px" }}
+                  >
+                    {assignedUsers.map((assignedUser) => (
+                      <span
+                        key={assignedUser.userId}
+                        className="badge bg-primary d-flex align-items-center"
+                        style={{ padding: "5px 10px", fontSize: "0.9rem" }}
+                      >
+                        {assignedUser.userName}
+                        {(user?.roles[0] !== "USER" ||
+                          user?.userId === assignedUser.userId) && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleRemoveAssignedUser(assignedUser.userId)
+                            }
+                            className="btn-close btn-close-white btn-sm ms-2"
+                            aria-label="Remove"
+                            style={{ fontSize: "0.6rem" }}
+                          ></button>
+                        )}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="row g-3 mt-1">
+              <div className="col-md-3">
+                <label className="form-label fw-bold">Tags</label>
+                <select
+                  name="tagId"
+                  className="form-select"
+                  onChange={(e) => {
+                    const selectedTagId = e.target.value;
+                    if (!selectedTagId) return;
+
+                    const selectedTag = tags.find(
+                      (tag) => tag.tagId === selectedTagId
+                    );
+                    if (
+                      selectedTag &&
+                      !assignedTags.some(
+                        (tag) => tag.tagId === selectedTag.tagId
+                      )
+                    ) {
+                      setAssignedTags([...assignedTags, selectedTag]);
+                    }
+
+                    e.target.value = "";
+                  }}
+                  disabled={formData.status === "COMPLETED"&&formData.isActive===false}
+                >
+                  <option value="">Select Tag</option>
+                  {tags.map((mod) => (
+                    <option
+                      key={mod.tagId}
+                      value={mod.tagId}
+                      disabled={assignedTags.some(
+                        (tag) => tag.tagId === mod.tagId
+                      )}
+                    >
+                      {mod.tagName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {assignedTags.length > 0 && (
+                <div className="col-md-3">
+                  <label className="form-label fw-bold">Assigned Tags</label>
+                  <div
+                    className="form-control d-flex flex-wrap gap-1"
+                    style={{ minHeight: "40px" }}
+                  >
+                    {assignedTags.map((tag) => (
+                      <span
+                        key={tag.tagId}
+                        className="badge bg-primary d-flex align-items-center"
+                        style={{ fontSize: "0.85rem", cursor: "pointer" }}
+                        onClick={() => {
+                          setAssignedTags(
+                            assignedTags.filter((t) => t.tagId !== tag.tagId)
+                          );
+                        }}
+                      >
+                        {tag.tagName} <span className="ms-1">✖</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            {assignedTags.length > 0 && (
+              <div className="row mt-3">
+                <div className="col-md-3 d-flex justify-content-center align-items-center gap-2">
+                  <label
+                    htmlFor="uploadCodeCheckbox"
+                    className="form-label fw-bold mt-2"
+                    style={{ cursor: "pointer" }}
+                  >
+                    Upload Code Changes (required for tagged tasks)
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="uploadCodeCheckbox"
+                    id="uploadCodeCheckbox"
+                    className="form-check-input"
+                    style={{
+                      width: "24px",
+                      height: "24px",
+                      cursor: "pointer",
+                      border: "2px solid #b9b9b9ff",
+                      borderRadius: "4px",
+                    }}
+                    checked={requireCodeUpload}
+                    onChange={(e) => setRequireCodeUpload(e.target.checked)}
+                  />
+                </div>
+              </div>
+            )}
+            {formData?.status === "COMPLETED" && (
+              <div className="row mt-3">
+                <div className="col-md-3 d-flex justify-content-center align-items-center gap-2">
+                  <label
+                    htmlFor="completeRequest"
+                    className="form-label fw-bold mt-2"
+                    style={{ cursor: "pointer" }}
+                  >
+                    Send Completed Task Request to Admin
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="completeRequest"
+                    id="completeRequest"
+                    className="form-check-input"
+                    style={{
+                      width: "24px",
+                      height: "24px",
+                      cursor: "pointer",
+                      border: "2px solid #b9b9b9ff",
+                      borderRadius: "4px",
+                    }}
+                    checked={isCompletedRequest}
+                    onChange={(e) => setIsCompletedRequest(e.target.checked)}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="d-flex mt-4 justify-content-end">
+              <button className="btn btn-primary px-5" type="submit">
+                Save
+              </button>
+            </div>
+          </div>
+        </form>
+
+        {requireCodeUpload && (
+          <form className="form mt-3" onSubmit={handleSubmitCodeChanings}>
+            <div className="p-5 border rounded-3 card shadow-sm">
+              {assignedTags.map((tag) => (
+                <div key={tag.tagId} className="mb-4">
+                  <div
+                    className="text-uppercase fw-bold text-white px-3 py-2"
+                    style={{
+                      backgroundColor: "#0d6efd",
+                      marginBottom: "1rem",
+                      borderRadius: "4px",
+                      fontSize: "1rem",
+                      letterSpacing: "1px",
+                      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                    }}
+                  >
+                    {tag.tagName}
+                  </div>
+
+                  {(codeInputs[tag.tagId] || []).map((input, idx) => (
+                    <div
+                      key={idx}
+                      className="border p-3 rounded mb-3 bg-light position-relative"
+                    >
+                      {/* Remove row button */}
+                      <button
+                        type="button"
+                        className="btn-close position-absolute top-0 end-0 m-2"
+                        onClick={async () => {
+                          if (
+                            window.confirm(
+                              "Are you sure you want to delete this code change file?"
+                            )
+                          ) {
+                            const updatedInputs = [
+                              ...(codeInputs[tag.tagId] || []),
+                            ];
+
+                            const deletedRow = updatedInputs[idx];
+                            if (deletedRow.taskCodeChangeId) {
+                              try {
+                                var response = await axios.delete(
+                                  `${config.baseUrl}TaskCodeChanges/DeleteTaskCodeChange`,
+                                  {
+                                    data: {
+                                      taskCodeChangeId:
+                                        deletedRow.taskCodeChangeId,
+                                    },
+                                  }
+                                );
+                                if (response.data.result.succeeded) {
+                                  ShowMessage(1, "Row deleted successfully.");
+                                }
+                              } catch (err) {
+                                ShowMessage(2, "Failed to delete row.");
+                                return;
+                              }
+                            }
+                            updatedInputs.splice(idx, 1);
+                            setCodeInputs((prev) => ({
+                              ...prev,
+                              [tag.tagId]: updatedInputs,
+                            }));
+                          }
+                        }}
+                      />
+
+                      {/* Initial selection */}
+                      {input.type === null ? (
+                        <div className="d-flex gap-2">
+                          <button
+                            type="button"
+                            className="btn btn-outline-primary btn-sm"
+                            onClick={() => {
+                              const updatedInputs = [
+                                ...(codeInputs[tag.tagId] || []),
+                              ];
+                              updatedInputs[idx] = {
+                                ...updatedInputs[idx],
+                                type: "file",
+                              };
+                              setCodeInputs((prev) => ({
+                                ...prev,
+                                [tag.tagId]: updatedInputs,
+                              }));
+                            }}
+                          >
+                            📁 Upload Code
+                          </button>
+
+                          <button
+                            type="button"
+                            className="btn btn-outline-secondary btn-sm"
+                            onClick={() => {
+                              const updatedInputs = [
+                                ...(codeInputs[tag.tagId] || []),
+                              ];
+                              updatedInputs[idx] = {
+                                ...updatedInputs[idx],
+                                type: "text",
+                                showOld: true,
+                                showNew: true,
+                              };
+                              setCodeInputs((prev) => ({
+                                ...prev,
+                                [tag.tagId]: updatedInputs,
+                              }));
+                            }}
+                          >
+                            📝 Write Textual Code Explanation
+                          </button>
+                        </div>
+                      ) : input.type === "file" ? (
+                        <>
+                          <div className="fw-semibold mb-2">
+                            📁 Code File Upload Selected
+                          </div>
+                          <div className="row">
+                            <div className="col-md-6">
+                              <label className="form-label">Old File</label>
+
+                              <div className="custom-file">
+                                <input
+                                  type="file"
+                                  className="form-control"
+                                   disabled={!!(input.oldFileName && input.oldExtension)}
+                                  onChange={(e) => {
+                                    const oldFile = e.target.files?.[0] || null;
+                                    const updatedInputs = [
+                                      ...(codeInputs[tag.tagId] || []),
+                                    ];
+                                    updatedInputs[idx] = {
+                                      ...updatedInputs[idx],
+                                      oldFile,
+                                    };
+                                    setCodeInputs((prev) => ({
+                                      ...prev,
+                                      [tag.tagId]: updatedInputs,
+                                    }));
+                                  }}
+                                />
+
+                                {/* Show selected or existing file name visually */}
+                                <label className="form-text text-muted mt-1">
+                                  {input.oldFile
+                                    ? input.oldFile.name
+                                    : input.oldFileName && input.oldExtension
+                                    ? `${input.oldFileName}${input.oldExtension}`
+                                    : "No file selected"}
+                                </label>
+                              </div>
+
+                              {/* Download button */}
+                              {input.taskCodeChangeId &&
+                                input.oldFileName &&
+                                input.oldExtension && (
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-success mt-2"
+                                    onClick={() =>
+                                      handleDownloadFile(
+                                        input.taskCodeChangeId,
+                                        `${input.oldFileName}${input.oldExtension}`,
+                                        "OLD"
+                                      )
+                                    }
+                                  >
+                                    📥 Download Old File
+                                  </button>
+                                )}
+                            </div>
+
+                            <div className="col-md-6">
+                              <label className="form-label">New File</label>
+                              <div className="custom-file">
+                              <input
+                                type="file"
+                                className="form-control"
+                                 disabled={!!(input.newFileName && input.newExtension)}
+                                onChange={(e) => {
+                                  const newFile = e.target.files?.[0] || null;
+                                  const updatedInputs = [
+                                    ...(codeInputs[tag.tagId] || []),
+                                  ];
+                                  updatedInputs[idx] = {
+                                    ...updatedInputs[idx],
+                                    newFile,
+                                  };
+                                  setCodeInputs((prev) => ({
+                                    ...prev,
+                                    [tag.tagId]: updatedInputs,
+                                  }));
+                                }}
+                              />
+                                <label className="form-text text-muted mt-1">
+                                  {input.newFile
+                                    ? input.newFile.name
+                                    : input.newFileName && input.newExtension
+                                    ? `${input.newFileName}${input.newExtension}`
+                                    : "No file selected"}
+                                </label>
+                              </div>
+                            
+                              {input.newFileName &&
+                                input.newExtension &&
+                                input.taskCodeChangeId && (
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-success mt-2"
+                                    onClick={() =>
+                                      handleDownloadFile(
+                                        input.taskCodeChangeId,
+                                        `${input.newFileName}${input.newExtension}`,
+                                        "NEW"
+                                      )
+                                    }
+                                  >
+                                    📥 Download New File
+                                  </button>
+                                )}
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="fw-semibold mb-2">
+                            📝 Textual Code Explanation Selected
+                          </div>
+
+                          <div className="d-flex gap-2 mb-3">
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-outline-dark"
+                              onClick={() => {
+                                const updated = [
+                                  ...(codeInputs[tag.tagId] || []),
+                                ];
+                                updated[idx].showOld = !updated[idx].showOld;
+                                setCodeInputs((prev) => ({
+                                  ...prev,
+                                  [tag.tagId]: updated,
+                                }));
+                              }}
+                            >
+                              {input.showOld ? "Hide" : "Show"} Old Code
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-outline-dark"
+                              onClick={() => {
+                                const updated = [
+                                  ...(codeInputs[tag.tagId] || []),
+                                ];
+                                updated[idx].showNew = !updated[idx].showNew;
+                                setCodeInputs((prev) => ({
+                                  ...prev,
+                                  [tag.tagId]: updated,
+                                }));
+                              }}
+                            >
+                              {input.showNew ? "Hide" : "Show"} New Code
+                            </button>
+                          </div>
+
+                          {input.showOld && (
+                            <>
+                              <div className="row">
+                                <div className="col-md-4">
+                                  <label className="form-label">
+                                    Old File Name
+                                  </label>
+                                  <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Old File Name"
+                                    value={input.oldFileName || ""}
+                                    onChange={(e) => {
+                                      const updated = [
+                                        ...(codeInputs[tag.tagId] || []),
+                                      ];
+                                      updated[idx] = {
+                                        ...updated[idx],
+                                        oldFileName: e.target.value,
+                                      };
+                                      setCodeInputs((prev) => ({
+                                        ...prev,
+                                        [tag.tagId]: updated,
+                                      }));
+                                    }}
+                                  />
+                                </div>
+                                <div className="col-md-4">
+                                  <label className="form-label">
+                                    Old Extension
+                                  </label>
+                                  <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder=".js / .cs"
+                                    value={input.oldExtension || ""}
+                                    onChange={(e) => {
+                                      const updated = [
+                                        ...(codeInputs[tag.tagId] || []),
+                                      ];
+                                      updated[idx] = {
+                                        ...updated[idx],
+                                        oldExtension: e.target.value,
+                                      };
+                                      setCodeInputs((prev) => ({
+                                        ...prev,
+                                        [tag.tagId]: updated,
+                                      }));
+                                    }}
+                                  />
+                                </div>
+                                <div className="col-md-12 mt-2">
+                                  <label className="form-label">Old Code</label>
+                                  <textarea
+                                    className="form-control"
+                                    rows={3}
+                                    placeholder="Paste old code here..."
+                                    value={input.oldCode || ""}
+                                    onChange={(e) => {
+                                      const updated = [
+                                        ...(codeInputs[tag.tagId] || []),
+                                      ];
+                                      updated[idx] = {
+                                        ...updated[idx],
+                                        oldCode: e.target.value,
+                                      };
+                                      setCodeInputs((prev) => ({
+                                        ...prev,
+                                        [tag.tagId]: updated,
+                                      }));
+                                    }}
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Download Old */}
+                              {input.oldFileName &&
+                                input.oldExtension &&
+                                input.oldCode && (
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-success mt-2"
+                                    onClick={() => {
+                                      const blob = new Blob(
+                                        [input.oldCode as string],
+                                        {
+                                          type: "text/plain",
+                                        }
+                                      );
+                                      const link = document.createElement("a");
+                                      link.href = URL.createObjectURL(blob);
+                                      link.download = `${input.oldFileName}${input.oldExtension}`;
+                                      link.click();
+                                      URL.revokeObjectURL(link.href);
+                                    }}
+                                  >
+                                    📥 Download Old Code
+                                  </button>
+                                )}
+
+                              {input.oldFileName &&
+                                input.oldExtension &&
+                                input.taskCodeChangeId && (
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-success mt-2"
+                                    onClick={() =>
+                                      handleDownloadFile(
+                                        input.taskCodeChangeId,
+                                        `${input.oldFileName}${input.oldExtension}`,
+                                        "OLD"
+                                      )
+                                    }
+                                  >
+                                    📥 Download Old File
+                                  </button>
+                                )}
+                            </>
+                          )}
+
+                          {input.showNew && (
+                            <>
+                              <div className="row mt-3">
+                                <div className="col-md-4">
+                                  <label className="form-label">
+                                    New File Name
+                                  </label>
+                                  <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="New File Name"
+                                    value={input.newFileName || ""}
+                                    onChange={(e) => {
+                                      const updated = [
+                                        ...(codeInputs[tag.tagId] || []),
+                                      ];
+                                      updated[idx] = {
+                                        ...updated[idx],
+                                        newFileName: e.target.value,
+                                      };
+                                      setCodeInputs((prev) => ({
+                                        ...prev,
+                                        [tag.tagId]: updated,
+                                      }));
+                                    }}
+                                  />
+                                </div>
+                                <div className="col-md-4">
+                                  <label className="form-label">
+                                    New Extension
+                                  </label>
+                                  <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder=".js / .cs"
+                                    value={input.newExtension || ""}
+                                    onChange={(e) => {
+                                      const updated = [
+                                        ...(codeInputs[tag.tagId] || []),
+                                      ];
+                                      updated[idx] = {
+                                        ...updated[idx],
+                                        newExtension: e.target.value,
+                                      };
+                                      setCodeInputs((prev) => ({
+                                        ...prev,
+                                        [tag.tagId]: updated,
+                                      }));
+                                    }}
+                                  />
+                                </div>
+                                <div className="col-md-12 mt-2">
+                                  <label className="form-label">New Code</label>
+                                  <textarea
+                                    className="form-control"
+                                    rows={3}
+                                    placeholder="Paste new code here..."
+                                    value={input.newCode || ""}
+                                    onChange={(e) => {
+                                      const updated = [
+                                        ...(codeInputs[tag.tagId] || []),
+                                      ];
+                                      updated[idx] = {
+                                        ...updated[idx],
+                                        newCode: e.target.value,
+                                      };
+                                      setCodeInputs((prev) => ({
+                                        ...prev,
+                                        [tag.tagId]: updated,
+                                      }));
+                                    }}
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Download New */}
+                              {input.newFileName &&
+                                input.newExtension &&
+                                input.newCode && (
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-success mt-2"
+                                    onClick={() => {
+                                      const blob = new Blob(
+                                        [input.newCode as string],
+                                        {
+                                          type: "text/plain",
+                                        }
+                                      );
+                                      const link = document.createElement("a");
+                                      link.href = URL.createObjectURL(blob);
+                                      link.download = `${input.newFileName}${input.newExtension}`;
+                                      link.click();
+                                      URL.revokeObjectURL(link.href);
+                                    }}
+                                  >
+                                    📥 Download New Code
+                                  </button>
+                                )}
+                              {input.newFileName &&
+                                input.newExtension &&
+                                input.taskCodeChangeId && (
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-success mt-2"
+                                    onClick={() =>
+                                      handleDownloadFile(
+                                        input.taskCodeChangeId,
+                                        `${input.newFileName}${input.newExtension}`,
+                                        "NEW"
+                                      )
+                                    }
+                                  >
+                                    📥 Download New File
+                                  </button>
+                                )}
+                            </>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* ➕ Add New Entry */}
+                  <div className="d-flex">
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-success"
+                      onClick={() => {
+                        setCodeInputs((prev) => ({
+                          ...prev,
+                          [tag.tagId]: [
+                            ...(prev[tag.tagId] || []),
+                            { type: null },
+                          ],
+                        }));
+                      }}
+                    >
+                      ➕ Add New Entry
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <div className="d-flex mt-4 justify-content-end">
+                <button className="btn btn-primary px-5" type="submit">
+                  Save
+                </button>
+              </div>
+            </div>
+          </form>
+        )}
+      </div>
+    </Layout>
+  );
+};
+
+export default EditTask;

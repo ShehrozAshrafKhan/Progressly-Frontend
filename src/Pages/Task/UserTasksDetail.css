@@ -1,0 +1,11 @@
+/* UserTasksDetail.css */
+.table .table-success > td,
+.table .table-success > th {
+  background-color: #d4edda !important;
+}
+
+/* For striped tables */
+.table-striped .table-success > td,
+.table-striped .table-success > th {
+  background-color: #d4edda !important;
+}
