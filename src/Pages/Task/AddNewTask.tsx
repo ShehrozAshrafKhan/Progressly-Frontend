@@ -176,158 +176,191 @@ const AddNewTask = () => {
 
   return (
     <Layout>
-      <div className="card shadow-sm p-5">
-        <div className="d-flex gap-3 align-items-center mb-3">
-          <IoMdArrowRoundBack
-            fontSize={30}
-            onClick={handleBack}
-            className="cursor-pointer"
-          />
-          <h2 className="">Add Task</h2>
+      <div className="d-flex align-items-center gap-3 mb-4">
+        <button 
+          onClick={handleBack}
+          className="btn btn-light btn-icon shadow-sm border transition-base hover-scale"
+          title="Back to Tasks"
+          type="button"
+        >
+          <IoMdArrowRoundBack size={20} />
+        </button>
+        <div>
+          <h2 className="mb-1 fw-bold text-dark">Add New Task</h2>
+          <p className="text-muted mb-0">Create and assign a new task to a project module.</p>
         </div>
-        <form className="form" onSubmit={handleSubmit}>
-          <div className="p-5 border rounded-3 card shadow-sm">
-            <div className="row g-3 mb-3">
-              <div className="col-md-2">
-                <label className="form-label fw-bold">Task No</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="taskNo"
-                  value={formData.taskNo}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="col-md-5">
-                <label className="form-label fw-bold">Title</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="col-md-5">
-                <label className="form-label fw-bold">Description</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
+      </div>
 
-            <div className="row g-3 mb-3">
-              <div className="col-md-3">
-                <label className="form-label fw-bold">Estimated Hours</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  name="estimatedHours"
-                  value={formData.estimatedHours}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="col-md-3">
-                <label className="form-label fw-bold">Status</label>
-                <select
-                  name="status"
-                  className="form-select"
-                  value={formData.status}
-                  onChange={handleInputChange}
-                >
-                  <option value="" disabled>Select Status</option>
-                  {status.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="col-md-3">
-                <label className="form-label fw-bold">Priority</label>
-                <select
-                  name="priority"
-                  className="form-select"
-                  value={formData.priority}
-                  onChange={handleInputChange}
-                >
-                  <option value="" disabled>Select Priority</option>
-                  {priority.map((p) => (
-                    <option key={p} value={p}>
-                      {p}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="col-md-3">
-                <label className="form-label fw-bold">Due Date</label>
-                <input
-                  type="datetime-local"
-                  className="form-control"
-                  name="dueDate"
-                  value={formData.dueDate || ""}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
+      <div className="card border-0 shadow-sm rounded-lg overflow-hidden">
+        <div className="card-header bg-white border-bottom px-4 py-3">
+          <h5 className="mb-0 fw-semibold text-dark">Task Details</h5>
+        </div>
+        <div className="card-body p-4 p-md-5">
+          <form onSubmit={handleSubmit}>
+            <div className="row g-4 mb-4">
+               <div className="col-md-3">
+                 <label className="form-label fw-medium text-dark small mb-1">Task No <span className="text-muted fw-normal">(Optional)</span></label>
+                 <input
+                   type="text"
+                   className="form-control bg-light-soft border-0 px-3 py-2"
+                   name="taskNo"
+                   placeholder="Enter task no"
+                   value={formData.taskNo}
+                   onChange={handleInputChange}
+                 />
+               </div>
+               <div className="col-md-9">
+                 <label className="form-label fw-medium text-dark small mb-1">Title</label>
+                 <input
+                   type="text"
+                   className="form-control bg-light-soft border-0 px-3 py-2"
+                   name="title"
+                   placeholder="Task brief title"
+                   value={formData.title}
+                   onChange={handleInputChange}
+                   required
+                 />
+               </div>
+             </div>
 
-            <div className="row g-3">
-              <div className="col-md-3">
-                <label className="form-label fw-bold">Module</label>
-                <select
-                  name="moduleId"
-                  className="form-select"
-                  value={formData.moduleId}
-                  onChange={handleInputChange}
-                >
-                  <option value="">Select Module</option>
-                  {tblData.map((mod) => (
-                    <option key={mod.moduleId} value={mod.moduleId}>
-                      {mod.moduleName}
-                    </option>
-                  ))}
-                </select>
-              </div>
+             <div className="row g-4 mb-4">
+               <div className="col-md-12">
+                 <label className="form-label fw-medium text-dark small mb-1">Description</label>
+                 <textarea
+                   className="form-control bg-light-soft border-0 px-3 py-2"
+                   name="description"
+                   placeholder="Detailed description of the task"
+                   value={formData.description}
+                   onChange={handleInputChange}
+                   rows={3}
+                 />
+               </div>
+             </div>
 
-              <div className="col-md-3">
-                <label className="form-label fw-bold">Attachment</label>
-                <input
-                  type="file"
-                  className="form-control"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                />
-              </div>
+             <div className="row g-4 mb-4">
+               <div className="col-md-3">
+                 <label className="form-label fw-medium text-dark small mb-1">Estimated Hours</label>
+                 <input
+                   type="number"
+                   className="form-control bg-light-soft border-0 px-3 py-2"
+                   name="estimatedHours"
+                   placeholder="0"
+                   value={formData.estimatedHours}
+                   onChange={handleInputChange}
+                   min="0"
+                   step="0.5"
+                 />
+               </div>
+               <div className="col-md-3">
+                 <label className="form-label fw-medium text-dark small mb-1">Status</label>
+                 <select
+                   name="status"
+                   className="form-select bg-light-soft border-0 px-3 py-2 cursor-pointer"
+                   value={formData.status}
+                   onChange={handleInputChange}
+                 >
+                   <option value="" disabled>Select Status</option>
+                   {status.map((s) => (
+                     <option key={s} value={s}>
+                       {s.replace("_", " ")}
+                     </option>
+                   ))}
+                 </select>
+               </div>
+               <div className="col-md-3">
+                 <label className="form-label fw-medium text-dark small mb-1">Priority</label>
+                 <select
+                   name="priority"
+                   className="form-select bg-light-soft border-0 px-3 py-2 cursor-pointer"
+                   value={formData.priority}
+                   onChange={handleInputChange}
+                 >
+                   <option value="" disabled>Select Priority</option>
+                   {priority.map((p) => (
+                     <option key={p} value={p}>
+                       {p}
+                     </option>
+                   ))}
+                 </select>
+               </div>
+               <div className="col-md-3">
+                 <label className="form-label fw-medium text-dark small mb-1">Due Date <span className="text-muted fw-normal">(Optional)</span></label>
+                 <input
+                   type="datetime-local"
+                   className="form-control bg-light-soft border-0 px-3 py-2 cursor-pointer"
+                   name="dueDate"
+                   value={formData.dueDate || ""}
+                   onChange={handleInputChange}
+                 />
+               </div>
+             </div>
 
-              <div className="col-md-3">
-                <label className="form-label fw-bold">Assign To</label>
-                <select
-                  name="assignedby"
-                  className="form-select"
-                  value={formTaskAssignee.assignedby}
-                  onChange={handleUserInputChange}
-                >
-                  <option value="">Select User</option>
-                  {users.map((user) => (
-                    <option key={user.userId} value={user.userId}>
-                      {user.userName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+             <div className="row g-4 mb-5">
+               <div className="col-md-4">
+                 <label className="form-label fw-medium text-dark small mb-1">Module</label>
+                 <select
+                   name="moduleId"
+                   className="form-select bg-light-soft border-0 px-3 py-2 cursor-pointer"
+                   value={formData.moduleId}
+                   onChange={handleInputChange}
+                   required
+                 >
+                   <option value="">Select Project Module</option>
+                   {tblData.map((mod) => (
+                     <option key={mod.moduleId} value={mod.moduleId}>
+                       {mod.projectName} - {mod.moduleName}
+                     </option>
+                   ))}
+                 </select>
+               </div>
 
-            <div className="d-flex mt-4 justify-content-end">
-              <button className="btn btn-primary px-5" type="submit">
-                Save
-              </button>
-            </div>
-          </div>
-        </form>
+               <div className="col-md-4">
+                 <label className="form-label fw-medium text-dark small mb-1">Assign To <span className="text-muted fw-normal">(Optional)</span></label>
+                 <select
+                   name="assignedby"
+                   className="form-select bg-light-soft border-0 px-3 py-2 cursor-pointer"
+                   value={formTaskAssignee.assignedby}
+                   onChange={handleUserInputChange}
+                   disabled={!formData.moduleId}
+                 >
+                   <option value="">{formData.moduleId ? "Select User" : "Select Module First"}</option>
+                   {users.map((user) => (
+                     <option key={user.userId} value={user.userId}>
+                       {user.userName}
+                     </option>
+                   ))}
+                 </select>
+               </div>
+
+               <div className="col-md-4">
+                 <label className="form-label fw-medium text-dark small mb-1">Attachment <span className="text-muted fw-normal">(Optional)</span></label>
+                 <input
+                   type="file"
+                   className="form-control bg-light-soft border-0 px-3 py-2 cursor-pointer"
+                   ref={fileInputRef}
+                   onChange={handleFileChange}
+                 />
+               </div>
+             </div>
+
+             <div className="d-flex justify-content-end gap-3 pt-3 border-top">
+               <button 
+                 type="button" 
+                 className="btn btn-light px-4 fw-medium shadow-sm border transition-base"
+                 onClick={handleClear}
+               >
+                 Clear
+               </button>
+               <button 
+                 type="submit" 
+                 className="btn btn-primary px-4 fw-medium shadow-sm transition-base d-flex align-items-center gap-2"
+               >
+                 <i className="bi bi-check2"></i>
+                 Save Task
+               </button>
+             </div>
+          </form>
+        </div>
       </div>
     </Layout>
   );

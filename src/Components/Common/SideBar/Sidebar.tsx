@@ -1,150 +1,3 @@
-// import React, { useState } from 'react';
-// import { NavLink } from 'react-router-dom';
-// import './Sidebar.css';
-
-// type MenuKey = 'tasks' | 'users' | 'configurations';
-
-// type OpenMenuState = {
-//   [key in MenuKey]: boolean;
-// };
-
-// const Sidebar = () => {
-//   const [openMenu, setOpenMenu] = useState<OpenMenuState>({
-//     tasks: false,
-//     users: false,
-//     configurations:false
-//   });
-
-//   const toggleMenu = (menu: MenuKey) => {
-//     setOpenMenu((prev) => ({
-//       ...prev,
-//       [menu]: !prev[menu]
-//     }));
-//   };
-
-//   return (
-//     <div className="sidebar bg-dark text-white p-3">
-//       <h4 className="text-center mb-4">Progressly</h4>
-//       <ul className="nav flex-column">
-
-//         <li className="nav-item mb-2">
-//           <NavLink className="nav-link text-white" to="/dashboard">
-//             <i className="bi bi-house-door-fill me-2"></i> Dashboard
-//           </NavLink>
-//         </li>
-
-//         {/* Tasks - with toggle */}
-//         <li className="nav-item mb-2">
-//           <div
-//             className="nav-link text-white d-flex justify-content-between align-items-center cursor-pointer"
-//             onClick={() => toggleMenu('configurations')}
-//           >
-//             <span><i className="bi bi-card-checklist me-2"></i> Configurations</span>
-//             <i className={`bi ${openMenu.configurations ? 'bi-chevron-down' : 'bi-chevron-right'}`}></i>
-//           </div>
-//           {openMenu.configurations && (
-//             <ul className="nav flex-column ms-3">
-//               <li className="nav-item">
-//                 <NavLink className="nav-link text-white small" to="/admin/projects">
-//                  Projects
-//                 </NavLink>
-//               </li>
-//               <li className="nav-item">
-//                 <NavLink className="nav-link text-white small" to="/admin/modules">
-//                  Modules
-//                 </NavLink>
-//               </li>
-//               <li className="nav-item">
-//                 <NavLink className="nav-link text-white small" to="/admin/tags">
-//                  Tags
-//                 </NavLink>
-//               </li>
-//             </ul>
-//           )}
-//         </li>
-
-//         {/* Tasks - with toggle */}
-//         <li className="nav-item mb-2">
-//           <div
-//             className="nav-link text-white d-flex justify-content-between align-items-center cursor-pointer"
-//             onClick={() => toggleMenu('tasks')}
-//           >
-//             <span><i className="bi bi-card-checklist me-2"></i> Tasks</span>
-//             <i className={`bi ${openMenu.tasks ? 'bi-chevron-down' : 'bi-chevron-right'}`}></i>
-//           </div>
-//           {openMenu.tasks && (
-//             <ul className="nav flex-column ms-3">
-//               <li className="nav-item">
-//                 <NavLink className="nav-link text-white small" to="/tasks">
-//                   Tasks
-//                 </NavLink>
-//               </li>
-//               <li className="nav-item">
-//                 <NavLink className="nav-link text-white small" to="/admin/tasks/pending">
-//                   Pending Tasks
-//                 </NavLink>
-//               </li>
-//               <li className="nav-item">
-//                 <NavLink className="nav-link text-white small" to="/admin/tasks/completed">
-//                   Completed Tasks
-//                 </NavLink>
-//               </li>
-//             </ul>
-//           )}
-//         </li>
-
-//         {/* Users - with toggle */}
-//         <li className="nav-item mb-2">
-//           <div
-//             className="nav-link text-white d-flex justify-content-between align-items-center cursor-pointer"
-//             onClick={() => toggleMenu('users')}
-//           >
-//             <span><i className="bi bi-people-fill me-2"></i> Users</span>
-//             <i className={`bi ${openMenu.users ? 'bi-chevron-down' : 'bi-chevron-right'}`}></i>
-//           </div>
-//           {openMenu.users && (
-//             <ul className="nav flex-column ms-3">
-//               <li className="nav-item">
-//                 <NavLink className="nav-link text-white small" to="/admin/users/addNewUser">
-//                  Add User
-//                 </NavLink>
-//               </li>
-//               <li className="nav-item">
-//                 <NavLink className="nav-link text-white small" to="/users/updateProfile">
-//                  Update Profile
-//                 </NavLink>
-//               </li>
-//               <li className="nav-item">
-//                 <NavLink className="nav-link text-white small" to="/admin/users/admins">
-//                   Admins
-//                 </NavLink>
-//               </li>
-//               <li className="nav-item">
-//                 <NavLink className="nav-link text-white small" to="/admin/users/employees">
-//                   Employees
-//                 </NavLink>
-//               </li>
-//             </ul>
-//           )}
-//         </li>
-
-//         <li className="nav-item mb-2">
-//           <NavLink className="nav-link text-white" to="/admin/settings">
-//             <i className="bi bi-gear-fill me-2"></i> Settings
-//           </NavLink>
-//         </li>
-//       </ul>
-//     </div>
-//   );
-// };
-
-// export default Sidebar;
-
-
-
-
-
-
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import './Sidebar.css'
@@ -157,7 +10,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, toggleSidebar }) => {
   const {user} = useUser();
-  const role=user?.roles[0];
+  const role = user?.roles?.[0];
   const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
 
   const handleSubMenuToggle = (menuKey: string) => {
@@ -166,220 +19,222 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, toggleSidebar }) => {
 
   return (
     <>
-      <div className={`bg-dark col-md-2 text-white sidebar ${sidebarOpen ? "sidebar-open" : ""}`}>
-        <div className="sidebar-content p-3">
-          <h5 className="mb-3">Menu</h5>
-          <ul className="nav flex-column">
+      <div className={`bg-white border-end sidebar ${sidebarOpen ? "sidebar-open" : ""}`} style={{ zIndex: 1040 }}>
+        <div className="sidebar-content py-3 px-2">
+          <p className="text-uppercase text-muted fw-bold mb-3 ms-3" style={{ fontSize: '0.75rem', letterSpacing: '0.05em' }}>Menu</p>
+          <ul className="nav flex-column gap-1">
 
             {/* Dashboard */}
-            <li className="nav-item mb-2">
-              <NavLink to="/dashboard" className="nav-link text-white">
-                <i className="bi bi-house me-2"></i> Dashboard
+            <li className="nav-item">
+              <NavLink to="/dashboard" className={({ isActive }) => `nav-link rounded-lg px-3 py-2 text-dark transition-base d-flex align-items-center ${isActive ? 'bg-light-soft text-primary fw-medium' : 'hover-bg-light'}`}>
+                <i className="bi bi-house me-3 fs-5"></i>
+                <span>Dashboard</span>
               </NavLink>
             </li>
 
             {/* Configurations with sub-links */}
             {role!=="USER"?<>
-                 <li className="nav-item mb-2">
+            <li className="nav-item">
               <div
-                className="nav-link text-white d-flex justify-content-between align-items-center"
+                className={`nav-link rounded-lg px-3 py-2 text-dark transition-base d-flex justify-content-between align-items-center hover-bg-light ${openSubMenu === 'configurations' ? 'bg-light-soft' : ''}`}
                 onClick={() => handleSubMenuToggle("configurations")}
                 style={{ cursor: 'pointer' }}
               >
-                <span>
-                  <i className="bi bi-ui-checks-grid me-2"></i> Configurations
-                </span>
-                <i className={`bi ${openSubMenu === "configurations" ? "bi-chevron-up" : "bi-chevron-down"}`}></i>
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-ui-checks-grid me-3 fs-5"></i>
+                  <span>Configurations</span>
+                </div>
+                <i className={`bi transition-base ${openSubMenu === "configurations" ? "bi-chevron-up text-primary" : "bi-chevron-down text-muted"}`}></i>
               </div>
               {openSubMenu === "configurations" && (
-                <ul className="nav flex-column ms-3">
+                <ul className="nav flex-column ms-4 mt-1 border-start ms-4 ps-2">
                   <li className="nav-item mb-1">
-                    <NavLink to="/admin/projects" className="nav-link text-white">Projects</NavLink>
+                    <NavLink to="/admin/projects" className={({ isActive }) => `nav-link rounded px-3 py-1 text-muted transition-base ${isActive ? 'text-primary fw-medium' : 'hover-text-dark'}`}>Projects</NavLink>
                   </li>
                   <li className="nav-item mb-1">
-                    <NavLink to="/admin/modules" className="nav-link text-white">Modules</NavLink>
+                    <NavLink to="/admin/modules" className={({ isActive }) => `nav-link rounded px-3 py-1 text-muted transition-base ${isActive ? 'text-primary fw-medium' : 'hover-text-dark'}`}>Modules</NavLink>
                   </li>
                   <li className="nav-item mb-1">
-                    <NavLink to="/admin/tags" className="nav-link text-white">Tags</NavLink>
+                    <NavLink to="/admin/tags" className={({ isActive }) => `nav-link rounded px-3 py-1 text-muted transition-base ${isActive ? 'text-primary fw-medium' : 'hover-text-dark'}`}>Tags</NavLink>
                   </li>
                 </ul>
               )}
             </li></>:<></>}
-       
-
 
             {/* Tasks with sub-links */}
-            <li className="nav-item mb-2">
+            <li className="nav-item">
               <div
-                className="nav-link text-white d-flex justify-content-between align-items-center"
+                className={`nav-link rounded-lg px-3 py-2 text-dark transition-base d-flex justify-content-between align-items-center hover-bg-light ${openSubMenu === 'tasks' ? 'bg-light-soft' : ''}`}
                 onClick={() => handleSubMenuToggle("tasks")}
                 style={{ cursor: 'pointer' }}
               >
-                <span>
-                  <i className="bi bi-card-checklist me-2"></i> Tasks
-                </span>
-                <i className={`bi ${openSubMenu === "tasks" ? "bi-chevron-up" : "bi-chevron-down"}`}></i>
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-card-checklist me-3 fs-5"></i>
+                  <span>Tasks</span>
+                </div>
+                <i className={`bi transition-base ${openSubMenu === "tasks" ? "bi-chevron-up text-primary" : "bi-chevron-down text-muted"}`}></i>
               </div>
               {openSubMenu === "tasks" && (
-                <ul className="nav flex-column ms-3">
+                <ul className="nav flex-column ms-4 mt-1 border-start ms-4 ps-2">
                   <li className="nav-item mb-1">
-                    <NavLink to={`${role!="USER"?"/tasks":"/tasks/userTasksDetail/ALL"}`} className="nav-link text-white">Tasks</NavLink>
+                    <NavLink to={`${role!="USER"?"/tasks":"/tasks/userTasksDetail/ALL"}`} className={({ isActive }) => `nav-link rounded px-3 py-1 text-muted transition-base ${isActive ? 'text-primary fw-medium' : 'hover-text-dark'}`}>Tasks</NavLink>
                   </li>
                   <li className="nav-item mb-1">
-                    <NavLink to="/tasks/pendingTasks" className="nav-link text-white">Pending Tasks</NavLink>
+                    <NavLink to="/tasks/pendingTasks" className={({ isActive }) => `nav-link rounded px-3 py-1 text-muted transition-base ${isActive ? 'text-primary fw-medium' : 'hover-text-dark'}`}>Pending Tasks</NavLink>
                   </li>
                   <li className="nav-item mb-1">
-                    <NavLink to="/tasks/completedTasks" className="nav-link text-white">Completed Tasks</NavLink>
+                    <NavLink to="/tasks/completedTasks" className={({ isActive }) => `nav-link rounded px-3 py-1 text-muted transition-base ${isActive ? 'text-primary fw-medium' : 'hover-text-dark'}`}>Completed Tasks</NavLink>
                   </li>
                 </ul>
               )}
             </li>
 
-              {role!=="USER"?<> <li className="nav-item mb-2">
+            {/* Users with sub-links */}
+            {role!=="USER"?<>
+            <li className="nav-item">
               <div
-                className="nav-link text-white d-flex justify-content-between align-items-center"
+                className={`nav-link rounded-lg px-3 py-2 text-dark transition-base d-flex justify-content-between align-items-center hover-bg-light ${openSubMenu === 'users' ? 'bg-light-soft' : ''}`}
                 onClick={() => handleSubMenuToggle("users")}
                 style={{ cursor: 'pointer' }}
               >
-                <span>
-                  <i className="bi bi-people me-2"></i> Users
-                </span>
-                <i className={`bi ${openSubMenu === "users" ? "bi-chevron-up" : "bi-chevron-down"}`}></i>
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-people me-3 fs-5"></i>
+                  <span>Users</span>
+                </div>
+                <i className={`bi transition-base ${openSubMenu === "users" ? "bi-chevron-up text-primary" : "bi-chevron-down text-muted"}`}></i>
               </div>
               {openSubMenu === "users" && (
-                <ul className="nav flex-column ms-3">
+                <ul className="nav flex-column ms-4 mt-1 border-start ms-4 ps-2">
                   <li className="nav-item mb-1">
-                    <NavLink to="/admin/users/addNewUser" className="nav-link text-white">Add User</NavLink>
+                    <NavLink to="/admin/users/addNewUser" className={({ isActive }) => `nav-link rounded px-3 py-1 text-muted transition-base ${isActive ? 'text-primary fw-medium' : 'hover-text-dark'}`}>Add User</NavLink>
                   </li>
                   <li className="nav-item mb-1">
-                    <NavLink to="/users/updateProfile" className="nav-link text-white">Update Profile</NavLink>
+                    <NavLink to="/users/updateProfile" className={({ isActive }) => `nav-link rounded px-3 py-1 text-muted transition-base ${isActive ? 'text-primary fw-medium' : 'hover-text-dark'}`}>Update Profile</NavLink>
                   </li>
                   <li className="nav-item mb-1">
-                    <NavLink to="/admin/users/admins" className="nav-link text-white">Admins</NavLink>
+                    <NavLink to="/admin/users/admins" className={({ isActive }) => `nav-link rounded px-3 py-1 text-muted transition-base ${isActive ? 'text-primary fw-medium' : 'hover-text-dark'}`}>Admins</NavLink>
                   </li>
-                  {/* <li className="nav-item mb-1">
-                    <NavLink to="/admin/users/employees" className="nav-link text-white">Employees</NavLink>
-                  </li> */}
                 </ul>
               )}
-            </li></>:<> <li className="nav-item mb-2">
+            </li></>:<>
+            <li className="nav-item">
               <div
-                className="nav-link text-white d-flex justify-content-between align-items-center"
+                className={`nav-link rounded-lg px-3 py-2 text-dark transition-base d-flex justify-content-between align-items-center hover-bg-light ${openSubMenu === 'users' ? 'bg-light-soft' : ''}`}
                 onClick={() => handleSubMenuToggle("users")}
                 style={{ cursor: 'pointer' }}
               >
-                <span>
-                  <i className="bi bi-people me-2"></i> User
-                </span>
-                <i className={`bi ${openSubMenu === "users" ? "bi-chevron-up" : "bi-chevron-down"}`}></i>
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-person me-3 fs-5"></i>
+                  <span>User</span>
+                </div>
+                <i className={`bi transition-base ${openSubMenu === "users" ? "bi-chevron-up text-primary" : "bi-chevron-down text-muted"}`}></i>
               </div>
               {openSubMenu === "users" && (
-                <ul className="nav flex-column ms-3">
-                 
+                <ul className="nav flex-column ms-4 mt-1 border-start ms-4 ps-2">
                   <li className="nav-item mb-1">
-                    <NavLink to="/users/updateProfile" className="nav-link text-white">Update Profile</NavLink>
+                    <NavLink to="/users/updateProfile" className={({ isActive }) => `nav-link rounded px-3 py-1 text-muted transition-base ${isActive ? 'text-primary fw-medium' : 'hover-text-dark'}`}>Update Profile</NavLink>
                   </li>
-                 
-                  {/* <li className="nav-item mb-1">
-                    <NavLink to="/admin/users/employees" className="nav-link text-white">Employees</NavLink>
-                  </li> */}
                 </ul>
               )}
             </li></>}
-            {/* Users with sub-links */}
-           
-
-            {/* Analytics */}
-            {/* <li className="nav-item mb-2">
-              <NavLink to="/analytics" className="nav-link text-white">
-                <i className="bi bi-graph-up me-2"></i> Analytics
-              </NavLink>
-            </li> */}
-
-            {/* Settings with sub-links */}
-            {/* <li className="nav-item mb-2">
-              <div
-                className="nav-link text-white d-flex justify-content-between align-items-center"
-                onClick={() => handleSubMenuToggle("settings")}
-                style={{ cursor: 'pointer' }}
-              >
-                <span>
-                  <i className="bi bi-gear me-2"></i> Settings
-                </span>
-                <i className={`bi ${openSubMenu === "settings" ? "bi-chevron-up" : "bi-chevron-down"}`}></i>
-              </div>
-              {openSubMenu === "settings" && (
-                <ul className="nav flex-column ms-3">
-                  <li className="nav-item mb-1">
-                    <NavLink to="/settings/profile" className="nav-link text-white">Profile</NavLink>
-                  </li>
-                  <li className="nav-item mb-1">
-                    <NavLink to="/settings/security" className="nav-link text-white">Security</NavLink>
-                  </li>
-                </ul>
-              )}
-            </li> */}
 
             {/* Reports */}
-            {/* <li className="nav-item mb-2">
-              <NavLink to="/reports" className="nav-link text-white">
-                <i className="bi bi-file-text me-2"></i> Reports
-              </NavLink>
-            </li> */}
-                     {/* Tasks with sub-links */}
-            <li className="nav-item mb-2">
+            <li className="nav-item">
               <div
-                className="nav-link text-white d-flex justify-content-between align-items-center"
+                className={`nav-link rounded-lg px-3 py-2 text-dark transition-base d-flex justify-content-between align-items-center hover-bg-light ${openSubMenu === 'reports' ? 'bg-light-soft' : ''}`}
                 onClick={() => handleSubMenuToggle("reports")}
                 style={{ cursor: 'pointer' }}
               >
-                <span>
-                  <i className="bi bi-file-earmark-bar-graph me-2"></i> Reports
-                </span>
-                <i className={`bi ${openSubMenu === "reports" ? "bi-chevron-up" : "bi-chevron-down"}`}></i>
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-file-earmark-bar-graph me-3 fs-5"></i>
+                  <span>Reports</span>
+                </div>
+                <i className={`bi transition-base ${openSubMenu === "reports" ? "bi-chevron-up text-primary" : "bi-chevron-down text-muted"}`}></i>
               </div>
               {openSubMenu === "reports" && (
-                <ul className="nav flex-column ms-3">
-                 
+                <ul className="nav flex-column ms-4 mt-1 border-start ms-4 ps-2">
                   <li className="nav-item mb-1">
-                    <NavLink to="/reports/userWiseReports" className="nav-link text-white">{role!="USER"?"User's Wise":"My Task Report"}</NavLink>
+                    <NavLink to="/reports/userWiseReports" className={({ isActive }) => `nav-link rounded px-3 py-1 text-muted transition-base ${isActive ? 'text-primary fw-medium' : 'hover-text-dark'}`}>{role!="USER"?"User's Wise":"My Task Report"}</NavLink>
                   </li>
                   <li className="nav-item mb-1">
-                    <NavLink to="/reports/dateWiseReports" className="nav-link text-white">Date Wise</NavLink>
+                    <NavLink to="/reports/dateWiseReports" className={({ isActive }) => `nav-link rounded px-3 py-1 text-muted transition-base ${isActive ? 'text-primary fw-medium' : 'hover-text-dark'}`}>Date Wise</NavLink>
                   </li>
                   <li className="nav-item mb-1">
-                    <NavLink to="/reports/weeklySummaryReport" className="nav-link text-white">Weekly Summary Report</NavLink>
+                    <NavLink to="/reports/weeklySummaryReport" className={({ isActive }) => `nav-link rounded px-3 py-1 text-muted transition-base ${isActive ? 'text-primary fw-medium' : 'hover-text-dark'}`}>Weekly Summary Report</NavLink>
                   </li>
                 </ul>
               )}
             </li>
 
-{role!=="USER"?
-            <li className="nav-item mb-2">
+            {/* Settings */}
+            {role!=="USER"?
+            <li className="nav-item">
               <div
-                className="nav-link text-white d-flex justify-content-between align-items-center"
+                className={`nav-link rounded-lg px-3 py-2 text-dark transition-base d-flex justify-content-between align-items-center hover-bg-light ${openSubMenu === 'settings' ? 'bg-light-soft' : ''}`}
                 onClick={() => handleSubMenuToggle("settings")}
                 style={{ cursor: 'pointer' }}
               >
-                <span>
-                  <i className="bi bi-gear me-2"></i> Settings
-                </span>
-                <i className={`bi ${openSubMenu === "settings" ? "bi-chevron-up" : "bi-chevron-down"}`}></i>
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-gear me-3 fs-5"></i>
+                  <span>Settings</span>
+                </div>
+                <i className={`bi transition-base ${openSubMenu === "settings" ? "bi-chevron-up text-primary" : "bi-chevron-down text-muted"}`}></i>
               </div>
               {openSubMenu === "settings" && (
-                <ul className="nav flex-column ms-3">
-                 
+                <ul className="nav flex-column ms-4 mt-1 border-start ms-4 ps-2">
                   <li className="nav-item mb-1">
-                    <NavLink to="/settings/changeLogo" className="nav-link text-white">Change Logo</NavLink>
+                    <NavLink to="/settings/changeLogo" className={({ isActive }) => `nav-link rounded px-3 py-1 text-muted transition-base ${isActive ? 'text-primary fw-medium' : 'hover-text-dark'}`}>Change Logo</NavLink>
                   </li>
-               
                 </ul>
               )}
-            </li>:<></>
-}
+            </li>:<></>}
           </ul>
         </div>
       </div>
+
+      <style>{`
+        .hover-bg-light:hover {
+          background-color: var(--bs-light);
+        }
+        .hover-text-dark:hover {
+          color: var(--bs-dark) !important;
+        }
+        .sidebar {
+          transition: transform 0.3s ease-in-out;
+        }
+        /* Override default sidebar width and positioning for desktop */
+        @media (min-width: 992px) {
+          .sidebar {
+            width: 260px !important;
+            flex: 0 0 260px;
+            max-width: 260px;
+          }
+        }
+        /* Mobile sidebar */
+        @media (max-width: 991.98px) {
+          .sidebar {
+            position: fixed;
+            top: 60px; /* Below navbar */
+            bottom: 0;
+            left: 0;
+            width: 260px;
+            transform: translateX(-100%);
+            box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+          }
+          .sidebar.sidebar-open {
+            transform: translateX(0);
+          }
+          .sidebar-overlay {
+            position: fixed;
+            top: 60px;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1030;
+          }
+        }
+      `}</style>
 
       {/* Overlay for mobile */}
       {sidebarOpen && (

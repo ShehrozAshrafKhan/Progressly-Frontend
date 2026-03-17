@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { CiEdit } from "react-icons/ci";
+import { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import config from "../../../config";
 import { ShowMessage } from "../../../Components/Common/ShowMessage";
 import Layout from "../../../layouts/Layout";
@@ -14,7 +12,6 @@ type User = {
   role:string;
 };
 const Users = () => {
-  const navigate = useNavigate();
   const [tblData, setTblData] = useState<User[]>([]);
 
   useEffect(() => {

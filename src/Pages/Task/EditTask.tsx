@@ -597,17 +597,27 @@ const EditTask = () => {
 
   return (
     <Layout>
-      <div className="card shadow-sm p-5">
-        <div className="d-flex gap-3 align-items-center mb-3">
-          <IoMdArrowRoundBack
-            fontSize={30}
-            onClick={handleBack}
-            className="cursor-pointer"
-          />
-          <h2 className="">Edit Task</h2>
+      <div className="d-flex align-items-center gap-3 mb-4">
+        <button 
+          onClick={handleBack}
+          className="btn btn-light btn-icon shadow-sm border transition-base hover-scale"
+          title="Back"
+          type="button"
+        >
+          <IoMdArrowRoundBack size={20} />
+        </button>
+        <div>
+          <h2 className="mb-1 fw-bold text-dark">Edit Task</h2>
+          <p className="text-muted mb-0">Update task details, assignees, attachments, and code changes.</p>
         </div>
-        <form className="form" onSubmit={handleSubmit}>
-          <div className="p-5 border rounded-3 card shadow-sm">
+      </div>
+
+      <div className="card border-0 shadow-sm rounded-lg overflow-hidden mb-4">
+        <div className="card-header bg-white border-bottom px-4 py-3">
+          <h5 className="mb-0 fw-semibold text-dark">Task Details</h5>
+        </div>
+        <div className="card-body p-4 p-md-5">
+          <form onSubmit={handleSubmit}>
             <div className="row g-3 mb-3">
               <div className="col-md-2">
                 <label className="form-label fw-bold">Task No</label>
@@ -976,17 +986,26 @@ const EditTask = () => {
               </div>
             )}
 
-            <div className="d-flex mt-4 justify-content-end">
-              <button className="btn btn-primary px-5" type="submit">
-                Save
-              </button>
+            <div className="d-flex justify-content-end gap-3 pt-4 border-top">
+               <button 
+                 type="submit" 
+                 className="btn btn-primary px-4 fw-medium shadow-sm transition-base d-flex align-items-center gap-2"
+               >
+                 <i className="bi bi-check2"></i>
+                 Update Task
+               </button>
             </div>
-          </div>
-        </form>
+          </form>
+        </div>
+      </div>
 
         {requireCodeUpload && (
-          <form className="form mt-3" onSubmit={handleSubmitCodeChanings}>
-            <div className="p-5 border rounded-3 card shadow-sm">
+          <div className="card border-0 shadow-sm rounded-lg overflow-hidden">
+            <div className="card-header bg-white border-bottom px-4 py-3 d-flex justify-content-between align-items-center">
+              <h5 className="mb-0 fw-semibold text-dark">Code Changes</h5>
+            </div>
+            <div className="card-body p-4 p-md-5">
+              <form onSubmit={handleSubmitCodeChanings}>
               {assignedTags.map((tag) => (
                 <div key={tag.tagId} className="mb-4">
                   <div
@@ -1511,15 +1530,19 @@ const EditTask = () => {
                   </div>
                 </div>
               ))}
-              <div className="d-flex mt-4 justify-content-end">
-                <button className="btn btn-primary px-5" type="submit">
-                  Save
-                </button>
+              <div className="d-flex justify-content-end gap-3 pt-4 border-top">
+                 <button 
+                   type="submit" 
+                   className="btn btn-primary px-4 fw-medium shadow-sm transition-base d-flex align-items-center gap-2"
+                 >
+                   <i className="bi bi-cloud-upload"></i>
+                   Save Code Changes
+                 </button>
               </div>
-            </div>
-          </form>
+            </form>
+          </div>
+        </div>
         )}
-      </div>
     </Layout>
   );
 };

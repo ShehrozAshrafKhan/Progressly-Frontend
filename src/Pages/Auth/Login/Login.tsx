@@ -91,51 +91,65 @@ const Login = () => {
   };
 
   return (
-    <div className="bg-light min-vh-100 d-flex justify-content-center align-items-center">
+    <div className="bg-light-soft min-vh-100 d-flex justify-content-center align-items-center px-3">
       <div
-        className="card p-4 shadow-lg"
-        style={{ width: "100%", maxWidth: "400px" }}
+        className="card border-0 shadow-sm rounded-lg overflow-hidden"
+        style={{ width: "100%", maxWidth: "420px" }}
       >
-        <div className="d-flex justify-content-center align-items-center mb-3">
-          <img className="text-center" src={logo100} alt="" />
-          <h2 style={{fontWeight:700}}>Progressly</h2>
+        <div className="card-body p-4 p-md-5">
+          <div className="text-center mb-4">
+            <div className="d-flex justify-content-center align-items-center mb-3">
+              <img src={logo100} alt="Progressly Logo" width="48" height="48" className="me-2" />
+              <h2 className="mb-0 fw-bold text-dark" style={{ letterSpacing: "-0.5px" }}>Progressly</h2>
+            </div>
+            <p className="text-muted small">Welcome back! Please enter your details.</p>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+              <label htmlFor="userId" className="form-label text-dark fw-medium small mb-1">
+                Email or Number
+              </label>
+              <input
+                type="text"
+                className="form-control bg-light-soft border-0 px-3 py-2"
+                id="userId"
+                placeholder="Enter your email or number"
+                value={formData.userId}
+                onChange={handleInputChange}
+                name="userId"
+                required
+              />
+            </div>
+
+            <div className="mb-4">
+              <label htmlFor="password" className="form-label text-dark fw-medium small mb-1 d-flex justify-content-between">
+                <span>Password</span>
+                <a href="#" className="text-primary text-decoration-none" style={{ fontSize: '0.8rem' }}>Forgot password?</a>
+              </label>
+              <input
+                type="password"
+                className="form-control bg-light-soft border-0 px-3 py-2"
+                id="password"
+                placeholder="Enter your password"
+                value={formData.password}
+                onChange={handleInputChange}
+                name="password"
+                required
+              />
+            </div>
+
+            <button type="submit" className="btn btn-primary w-100 py-2 fw-medium shadow-sm transition-base">
+              Sign in
+            </button>
+          </form>
+          
+          <div className="mt-4 text-center">
+            <p className="text-muted small mb-0">
+              Don't have an account? <a href="#" className="text-primary fw-medium text-decoration-none">Sign up</a>
+            </p>
+          </div>
         </div>
-
-        <div className="mb-3">
-          <label htmlFor="userId" className="form-label">
-            Email or Number
-          </label>
-          <input
-            type="text"
-            className="form-control"
-            id="userId"
-            placeholder="Enter your Email or Number"
-            value={formData.userId}
-            onChange={handleInputChange}
-            name="userId"
-          />
-        </div>
-
-        <div className="mb-3">
-          <label htmlFor="password" className="form-label">
-            Password
-          </label>
-          <input
-            type="password"
-            className="form-control"
-            id="password"
-            placeholder="Enter your Password"
-            value={formData.password}
-            onChange={handleInputChange}
-            name="password"
-          />
-        </div>
-
-        <button onClick={handleSubmit} className="btn btn-primary w-100">
-          Login
-        </button>
-
-        
       </div>
     </div>
   );

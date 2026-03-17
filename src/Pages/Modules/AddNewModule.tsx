@@ -91,63 +91,94 @@ const AddNewModule = () => {
   };
   return (
     <Layout>
-      <div className="card shadow-sm p-5">
-        <div className="d-flex gap-3 align-items-center mb-3">
-          <IoMdArrowRoundBack fontSize={30} onClick={handleBack} className="cursor-pointer" />
-          <h2 className="">Add Module</h2>
+      <div className="d-flex align-items-center mb-4 gap-3">
+        <button 
+          onClick={handleBack} 
+          className="btn btn-light border rounded-circle d-flex align-items-center justify-content-center shadow-sm transition-base hover-bg-light"
+          style={{ width: '40px', height: '40px', padding: 0 }}
+          title="Back to Modules"
+        >
+          <IoMdArrowRoundBack fontSize={20} className="text-secondary" />
+        </button>
+        <div>
+          <h2 className="mb-0 fw-bold text-dark">Add Module</h2>
+          <p className="text-muted mb-0 small">Create a new module and attach it to a project.</p>
         </div>
-        <form className="form" onSubmit={handleSubmit}>
-          <div className="p-5 border rounded-3 card shadow-sm">
-            <div className="row g-3 align-items-center">
-              <div className="col-md-4">
-                <label htmlFor="moduleName">Module Name</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="moduleName"
-                  id="moduleName"
-                  value={formData.moduleName}
-                  onChange={handleInputChange}
-                />
-              </div>
+      </div>
 
-              <div className="col-md-4">
-                <label htmlFor="description">Description</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="description"
-                  id="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                />
-              </div>
+      <div className="row">
+        <div className="col-12 col-xl-10">
+          <div className="card border-0 shadow-sm rounded-lg overflow-hidden">
+            <div className="card-header bg-white border-bottom py-3 px-4">
+              <h5 className="mb-0 fw-semibold text-dark">Module Details</h5>
+            </div>
+            <form className="form" onSubmit={handleSubmit}>
+              <div className="card-body p-4">
+                <div className="row g-4">
+                  <div className="col-md-4">
+                    <label htmlFor="moduleName" className="form-label fw-medium text-dark small mb-1">
+                      Module Name <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control bg-light-soft border-0 px-3 py-2"
+                      name="moduleName"
+                      id="moduleName"
+                      placeholder="Enter module name"
+                      value={formData.moduleName}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
 
-              <div className="col-md-4">
-                <label htmlFor="projectId">Projects</label>
-                <select
-                  name="projectId"
-                  id="projectId"
-                  className="form-select"
-                  value={formData.projectId}
-                  onChange={handleInputChange}
-                >
-                  <option value=""> Select Project </option>
-                  {projectsData.map((item) => (
-                    <option key={item.projectId} value={item.projectId}>
-                      {item.projectName}
-                    </option>
-                  ))}
-                </select>
+                  <div className="col-md-4">
+                    <label htmlFor="description" className="form-label fw-medium text-dark small mb-1">
+                      Description
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control bg-light-soft border-0 px-3 py-2"
+                      name="description"
+                      id="description"
+                      placeholder="Brief description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+
+                  <div className="col-md-4">
+                    <label htmlFor="projectId" className="form-label fw-medium text-dark small mb-1">
+                      Project <span className="text-danger">*</span>
+                    </label>
+                    <select
+                      name="projectId"
+                      id="projectId"
+                      className="form-select bg-light-soft border-0 px-3 py-2"
+                      value={formData.projectId}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="" disabled>Select Project</option>
+                      {projectsData.map((item) => (
+                        <option key={item.projectId} value={item.projectId}>
+                          {item.projectName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="d-flex mt-4 justify-content-end">
-              <button className="btn btn-primary px-5" type="submit">
-                Save
-              </button>
-            </div>
+              <div className="card-footer bg-light-soft border-top py-3 px-4 d-flex justify-content-end gap-2">
+                <button type="button" className="btn btn-light border px-4 shadow-sm" onClick={handleClear}>
+                  Clear
+                </button>
+                <button type="submit" className="btn btn-primary px-4 shadow-sm">
+                  Save Module
+                </button>
+              </div>
+            </form>
           </div>
-        </form>
+        </div>
       </div>
     </Layout>
   );

@@ -1,25 +1,38 @@
 
 .sidebar {
-          width: 300px;
-          height: calc(100vh - 56px);
-          position: fixed;
-          top: 56px;
-          left: -250px;
-          z-index: 1000;
-          transition: left 0.3s ease;
-          overflow-y: auto;
-        }
+  width: 260px;
+  height: calc(100vh - 60px);
+  position: fixed;
+  top: 60px;
+  left: -260px;
+  z-index: 1040;
+  transition: all 0.3s ease;
+  overflow-y: auto;
+  box-shadow: 0 0 15px rgba(0,0,0,0.05);
+}
 
-        .sidebar-open {
-          left: 0;
-        }
+.sidebar-open {
+  left: 0 !important;
+}
 
-        .sidebar-overlay {
-          position: fixed;
-          top: 56px;
-          left: 0;
-          width: 100%;
-          height: calc(100vh - 56px);
-          background-color: rgba(0, 0, 0, 0.5);
-          z-index: 999;
-        }
+/* On Desktop: Always show sidebar */
+@media (min-width: 992px) {
+  .sidebar {
+    position: sticky;
+    top: 60px;
+    left: 0;
+    flex-shrink: 0;
+    height: calc(100vh - 60px);
+  }
+}
+
+.sidebar-overlay {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: 100%;
+  height: calc(100vh - 60px);
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 1039;
+  backdrop-filter: blur(2px);
+}

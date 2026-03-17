@@ -77,36 +77,40 @@ function GenericTable<T extends { id: number | string }>({
   };
 
   return (
-    <>
-      {/* Search */}
-      <div className="d-flex justify-content-between mb-2">
-        <input
-          type="text"
-          className="form-control w-50"
-          placeholder="Search..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+    <div className="card shadow-sm border-0 rounded-lg">
+      <div className="card-header bg-white border-bottom py-3 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+        {/* Search */}
+        <div className="position-relative w-100" style={{ maxWidth: '300px' }}>
+          <i className="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+          <input
+            type="text"
+            className="form-control ps-5 bg-light-soft border-0"
+            placeholder="Search..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
 
         {/* Column Visibility Toggle */}
         <div className="dropdown">
           <button
-            className="btn btn-secondary dropdown-toggle"
+            className="btn btn-light border d-flex align-items-center gap-2"
             type="button"
             data-bs-toggle="dropdown"
           >
-            Columns
+            <i className="bi bi-layout-three-columns"></i> Columns
           </button>
-          <ul className="dropdown-menu">
+          <ul className="dropdown-menu dropdown-menu-end shadow border-0 p-2" style={{ minWidth: '200px', borderRadius: '0.5rem' }}>
             {columns.map((col, idx) => (
               <li key={idx}>
-                <label className="dropdown-item">
+                <label className="dropdown-item d-flex align-items-center gap-2 rounded px-2 py-1 user-select-none" style={{ cursor: 'pointer' }}>
                   <input
                     type="checkbox"
+                    className="form-check-input m-0"
                     checked={visibleColumns.has(col.key as string)}
                     onChange={() => toggleColumn(col.key as string)}
                   />
-                  {col.header}
+                  <span>{col.header}</span>
                 </label>
               </li>
             ))}
@@ -115,106 +119,126 @@ function GenericTable<T extends { id: number | string }>({
       </div>
 
       {/* Table */}
-      <table className="table table-bordered table-striped">
-        <thead className="table-dark">
-          <tr>
-            <th>
-              <input
-                type="checkbox"
-                onChange={(e) =>
-                  setSelectedRows(
-                    e.target.checked
-                      ? new Set(data.map((row) => row.id))
-                      : new Set()
-                  )
-                }
-                checked={selectedRows.size === data.length}
-              />
-            </th>
-            {columns.map((col, idx) =>
-              visibleColumns.has(col.key as string) ? (
-                <th
-                  key={idx}
-                  onClick={() => col.sortable && toggleSort(col.key)}
-                >
-                  {col.header}{" "}
-                  {col.sortable &&
-                    (sortKey === col.key ? (sortAsc ? "🔼" : "🔽") : "⬍")}
-                </th>
-              ) : null
-            )}
-            {(onEdit || onDelete) && <th>Actions</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {paginatedData.length === 0 ? (
+      <div className="table-responsive mb-0">
+        <table className="table table-hover align-middle mb-0">
+          <thead className="table-light text-muted">
             <tr>
-              <td colSpan={columns.length + 2} className="text-center">
-                No data found
-              </td>
+              <th className="text-center" style={{ width: '50px' }}>
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  onChange={(e) =>
+                    setSelectedRows(
+                      e.target.checked
+                        ? new Set(data.map((row) => row.id))
+                        : new Set()
+                    )
+                  }
+                  checked={data.length > 0 && selectedRows.size === data.length}
+                />
+              </th>
+              {columns.map((col, idx) =>
+                visibleColumns.has(col.key as string) ? (
+                  <th
+                    key={idx}
+                    onClick={() => col.sortable && toggleSort(col.key)}
+                    style={{ cursor: col.sortable ? 'pointer' : 'default', fontWeight: 600 }}
+                    className="text-uppercase text-nowrap"
+                  >
+                    <div className="d-flex align-items-center gap-1">
+                      {col.header}
+                      {col.sortable && (
+                        <span className="text-muted" style={{ fontSize: '0.8em' }}>
+                          {sortKey === col.key ? (sortAsc ? "↑" : "↓") : "↕"}
+                        </span>
+                      )}
+                    </div>
+                  </th>
+                ) : null
+              )}
+              {(onEdit || onDelete) && <th className="text-end px-4 text-uppercase fw-semibold text-nowrap">Actions</th>}
             </tr>
-          ) : (
-            paginatedData.map((row) => (
-              <tr key={row.id}>
-                <td>
-                  <input
-                    type="checkbox"
-                    checked={selectedRows.has(row.id)}
-                    onChange={() => toggleRow(row.id)}
-                  />
+          </thead>
+          <tbody className="border-top-0">
+            {paginatedData.length === 0 ? (
+              <tr>
+                <td colSpan={columns.length + 2} className="text-center py-5 text-muted">
+                  <div className="d-flex flex-column align-items-center">
+                    <i className="bi bi-inbox fs-1 mb-2 text-light"></i>
+                    <p className="mb-0">No data found</p>
+                  </div>
                 </td>
-                {columns.map((col, idx) =>
-                  visibleColumns.has(col.key as string) ? (
-                    <td key={idx}>
-                      {col.render
-                        ? col.render(row[col.key], row)
-                        : (row[col.key] as React.ReactNode)}
-                    </td>
-                  ) : null
-                )}
-                {(onEdit || onDelete) && (
-                  <td>
-                    {onEdit && (
-                      <button
-                        className="btn btn-sm btn-info me-1"
-                        onClick={() => onEdit(row)}
-                      >
-                        Edit
-                      </button>
-                    )}
-                    {onDelete && (
-                      <button
-                        className="btn btn-sm btn-danger"
-                        onClick={() => onDelete(row)}
-                      >
-                        Delete
-                      </button>
-                    )}
-                  </td>
-                )}
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : (
+              paginatedData.map((row) => (
+                <tr key={row.id} className="transition-base">
+                  <td className="text-center">
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      checked={selectedRows.has(row.id)}
+                      onChange={() => toggleRow(row.id)}
+                    />
+                  </td>
+                  {columns.map((col, idx) =>
+                    visibleColumns.has(col.key as string) ? (
+                      <td key={idx} className="text-dark">
+                        {col.render
+                          ? col.render(row[col.key], row)
+                          : (row[col.key] as React.ReactNode)}
+                      </td>
+                    ) : null
+                  )}
+                  {(onEdit || onDelete) && (
+                    <td className="text-end px-3 text-nowrap">
+                      <div className="d-flex justify-content-end gap-2">
+                        {onEdit && (
+                          <button
+                            className="btn btn-sm btn-light text-primary border rounded-circle"
+                            onClick={() => onEdit(row)}
+                            title="Edit"
+                            style={{ width: '32px', height: '32px', padding: 0 }}
+                          >
+                            <i className="bi bi-pencil"></i>
+                          </button>
+                        )}
+                        {onDelete && (
+                          <button
+                            className="btn btn-sm btn-light text-danger border rounded-circle"
+                            onClick={() => onDelete(row)}
+                            title="Delete"
+                            style={{ width: '32px', height: '32px', padding: 0 }}
+                          >
+                            <i className="bi bi-trash"></i>
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  )}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {/* Pagination */}
-      <div className="d-flex justify-content-between">
-        <span>
-          Showing {(page - 1) * rowsPerPage + 1} to{" "}
-          {Math.min(page * rowsPerPage, sortedData.length)} of{" "}
-          {sortedData.length}
+      <div className="card-footer bg-white border-top py-3 d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+        <span className="text-muted small">
+          Showing <span className="fw-medium text-dark">{sortedData.length > 0 ? (page - 1) * rowsPerPage + 1 : 0}</span> to{" "}
+          <span className="fw-medium text-dark">{Math.min(page * rowsPerPage, sortedData.length)}</span> of{" "}
+          <span className="fw-medium text-dark">{sortedData.length}</span> results
         </span>
-        <div>
+        <div className="d-flex gap-2">
           <button
-            className="btn btn-sm btn-secondary me-2"
+            className="btn btn-sm btn-light border px-3"
             disabled={page === 1}
             onClick={() => setPage(page - 1)}
           >
-            Prev
+            Previous
           </button>
           <button
-            className="btn btn-sm btn-secondary"
+            className="btn btn-sm btn-light border px-3"
             disabled={page * rowsPerPage >= sortedData.length}
             onClick={() => setPage(page + 1)}
           >
@@ -222,7 +246,7 @@ function GenericTable<T extends { id: number | string }>({
           </button>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

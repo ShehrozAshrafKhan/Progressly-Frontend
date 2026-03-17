@@ -5,13 +5,13 @@ import { useNavigate } from "react-router-dom";
 import Layout from "../../layouts/Layout";
 
 const UserView = () => {
-  const navigate=useNavigate();
+  const navigate = useNavigate();
   const [taskStats, setTaskStats] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const url=`${config.baseUrl}Tasks/GetUserTasksCount`;
+        const url = `${config.baseUrl}Tasks/GetUserTasksCount`;
         const res = await axios.get(url); 
         const data = res.data?.data;
 
@@ -30,35 +30,40 @@ const UserView = () => {
     fetchData();
   }, []);
 
-
- const cards = [
+  const cards = [
     { key: "TotalTasks", title: "Total Tasks", icon: "bi-list-task", color: "primary", route: "ALL" },
-    { key: "MyTasks", title: "My Tasks", icon: "bi-person-check", color: "success", route: "MYTASK" },
+    { key: "MyTasks", title: "My Tasks", icon: "bi-person-badge", color: "secondary", route: "MYTASK" },
     { key: "ActiveTasks", title: "Active Tasks", icon: "bi-lightning", color: "warning", route: "ACTIVE" },
-    { key: "CompletedTasks", title: "Completed Tasks", icon: "bi-check-circle", color: "info", route: "COMPLETED" },
-    { key: "OverdueTasks", title: "Overdue Tasks", icon: "bi-exclamation-triangle", color: "danger", route: "OVERDUE" },
-    { key: "UpcomingDeadlines", title: "Upcoming Deadlines", icon: "bi-calendar-event", color: "secondary", route: "UPCOMING" },
+    { key: "CompletedTasks", title: "Completed Tasks", icon: "bi-check-circle", color: "success", route: "COMPLETED" },
+    { key: "OverdueTasks", title: "Overdue Tasks", icon: "bi-exclamation-octagon", color: "danger", route: "OVERDUE" },
+    { key: "UpcomingDeadlines", title: "Upcoming Deadlines", icon: "bi-calendar-event", color: "info", route: "UPCOMING" },
   ];
 
   return (
     <Layout>
       <div className="mb-4">
-        <h2 className="mb-1">Welcome Back!</h2>
-        <p className="text-muted">Here’s a summary of your current tasks.</p>
+        <h2 className="mb-1 fw-bold text-dark">Welcome Back!</h2>
+        <p className="text-muted">Here's a summary of your current tasks.</p>
       </div>
 
-      <div className="row">
+      <div className="row g-4 mb-4">
         {cards.map((card, idx) => (
-          <div className="col-md-4 mb-4" style={{cursor:"pointer"}}  onClick={() => navigate(`/tasks/userTasksDetail/${card.route}`)}  key={idx}>
-            <div className={`card shadow-sm border-start border-${card.color} border-1`}>
-              <div className="card-body d-flex justify-content-between align-items-center">
+          <div className="col-md-6 col-xl-4" key={idx}>
+            <div 
+              className="card border-0 shadow-sm rounded-lg h-100 card-hover"
+              onClick={() => navigate(`/tasks/userTasksDetail/${card.route}`)}
+              style={{ cursor: "pointer", borderLeft: `4px solid var(--bs-${card.color}) !important` }}
+            >
+              <div className="card-body p-4 d-flex justify-content-between align-items-center">
                 <div>
-                  <h6 className="text-muted text-uppercase">{card.title}</h6>
-                  <h3 className="fw-bold">{taskStats[card.key] ?? 0}</h3>
+                  <p className="text-muted text-uppercase fw-semibold mb-1" style={{ fontSize: '0.8rem', letterSpacing: '0.5px' }}>
+                    {card.title}
+                  </p>
+                  <h3 className="fw-bold mb-0 text-dark">{taskStats[card.key] ?? 0}</h3>
                 </div>
                 <div
-                  className={`bg-${card.color} text-white rounded-circle d-flex align-items-center justify-content-center`}
-                  style={{ width: 50, height: 50 }}
+                  className={`bg-${card.color} bg-opacity-10 text-${card.color} rounded-circle d-flex align-items-center justify-content-center`}
+                  style={{ width: '48px', height: '48px' }}
                 >
                   <i className={`bi ${card.icon} fs-4`}></i>
                 </div>

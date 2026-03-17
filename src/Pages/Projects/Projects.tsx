@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { CiEdit } from "react-icons/ci";
 import { ShowMessage } from "../../Components/Common/ShowMessage";
 import config from "../../config";
@@ -101,54 +101,86 @@ const handlePrintProject = async () => {
 
   return (
     <Layout>
-      <h1>Projects</h1>
-       <div className="d-grid gap-2 d-md-flex justify-content-md-end mb-2">
-          <button className="btn btn-primary me-md-2" type="button" onClick={handlePrintProject}>
-            Print
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 className="mb-1 fw-bold text-dark">Projects</h2>
+          <p className="text-muted mb-0">Manage and monitor all your projects.</p>
+        </div>
+        <div className="d-flex gap-2">
+          <button className="btn btn-light border d-flex align-items-center gap-2 transition-base px-3 hover-bg-light shadow-sm" type="button" onClick={handlePrintProject}>
+            <i className="bi bi-printer text-muted"></i> 
+            <span className="fw-medium">Print</span>
           </button>
-          <button className="btn btn-success me-md-2" type="button" onClick={handleAddNewProject}>
-            Add New
+          <button className="btn btn-primary d-flex align-items-center gap-2 transition-base px-3 shadow-sm" type="button" onClick={handleAddNewProject}>
+            <i className="bi bi-plus-lg"></i> 
+            <span className="fw-medium">Add New</span>
           </button>
         </div>
-      <div className="card mt-3">
-        <div className="card-body">
+      </div>
+      
+      <div className="card border-0 shadow-sm rounded-lg overflow-hidden mt-3">
+        <div className="card-body p-0">
           <div className="table-responsive">
-            <table className="table table-striped">
-              <thead>
+            <table className="table table-hover align-middle mb-0">
+              <thead className="table-light text-muted">
                 <tr>
-                  <th>Project Name</th>
-                  <th>Description</th>
-                  <th>Status</th>
-                  <th>Action</th>
+                  <th className="px-4 py-3 text-uppercase fw-semibold" style={{ fontSize: '0.8rem', letterSpacing: '0.5px' }}>Project Name</th>
+                  <th className="px-4 py-3 text-uppercase fw-semibold" style={{ fontSize: '0.8rem', letterSpacing: '0.5px' }}>Description</th>
+                  <th className="px-4 py-3 text-uppercase fw-semibold" style={{ fontSize: '0.8rem', letterSpacing: '0.5px' }}>Status</th>
+                  <th className="px-4 py-3 text-end text-uppercase fw-semibold" style={{ fontSize: '0.8rem', letterSpacing: '0.5px' }}>Action</th>
                 </tr>
               </thead>
-              <tbody>
-                {tblData.map((item, index) => (
-                  <tr key={item.projectId || index}>
-                    <td>{item.projectName}</td>
-                    <td>{item.description}</td>
-                    <td>
-                      <div className="form-check form-switch">
-                        <input
-                          className="form-check-input cursor-pointer"
-                          type="checkbox"
-                          role="switch"
-                          id={`flexSwitchCheckChecked-${index}`}
-                          checked={item.isActive}
-                          style={{ width: "3rem", height: "1.5rem" }}
-                          onChange={() => handleInputChange(item.projectId)}
-                        />
+              <tbody className="border-top-0">
+                {tblData.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="text-center py-5 text-muted">
+                      <div className="d-flex flex-column align-items-center">
+                        <i className="bi bi-inbox fs-1 mb-2 text-light"></i>
+                        <p className="mb-0">No projects found</p>
                       </div>
                     </td>
-                    <td>
-                      <CiEdit
-                        fontSize={25}
-                        className="cursor-pointer"
-                        onClick={() => handleEdit(item.projectId)}
-                      />
-                    </td>
                   </tr>
-                ))}
+                ) : (
+                  tblData.map((item, index) => (
+                    <tr key={item.projectId || index} className="transition-base">
+                      <td className="px-4 py-3 fw-medium text-dark">{item.projectName}</td>
+                      <td className="px-4 py-3 text-muted">{item.description}</td>
+                      <td className="px-4 py-3">
+                        <div className="form-check form-switch m-0 d-flex align-items-center">
+                          <input
+                            className="form-check-input cursor-pointer"
+                            type="checkbox"
+                            role="switch"
+                            id={`flexSwitchCheckChecked-${index}`}
+                            checked={item.isActive}
+                            onChange={() => handleInputChange(item.projectId)}
+                            style={{ 
+                              width: "2.5rem", 
+                              height: "1.25rem",
+                              backgroundColor: item.isActive ? 'var(--bs-primary)' : '',
+                              borderColor: item.isActive ? 'var(--bs-primary)' : ''
+                            }}
+                          />
+                          <label className="form-check-label ms-2 small fw-medium" htmlFor={`flexSwitchCheckChecked-${index}`}>
+                            <span className={item.isActive ? 'text-primary' : 'text-muted'}>
+                              {item.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                          </label>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-end">
+                        <button
+                          className="btn btn-sm btn-light text-primary border rounded-circle transition-base"
+                          onClick={() => handleEdit(item.projectId)}
+                          title="Edit Project"
+                          style={{ width: '36px', height: '36px', padding: 0 }}
+                        >
+                          <CiEdit fontSize={20} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { ShowMessage } from "../../Components/Common/ShowMessage";
 import axios from "axios";
 import config from "../../config";
@@ -53,45 +53,73 @@ const AddNewProject = () => {
   };
   return (
     <Layout>
-      <div className="card shadow-sm p-5">
-        <div className="d-flex gap-3 align-items-center mb-3">
-          <IoMdArrowRoundBack fontSize={30} onClick={handleBack} className="cursor-pointer"/>
-          <h2 className="">Add Project</h2>
+      <div className="d-flex align-items-center mb-4 gap-3">
+        <button 
+          onClick={handleBack} 
+          className="btn btn-light border rounded-circle d-flex align-items-center justify-content-center shadow-sm transition-base hover-bg-light"
+          style={{ width: '40px', height: '40px', padding: 0 }}
+          title="Back to Projects"
+        >
+          <IoMdArrowRoundBack fontSize={20} className="text-secondary" />
+        </button>
+        <div>
+          <h2 className="mb-0 fw-bold text-dark">Add New Project</h2>
+          <p className="text-muted mb-0 small">Create a new project in the system.</p>
         </div>
-        <form className="form" onSubmit={handleSubmit}>
-          <div className="p-5 border rounded-3 card shadow-sm">
-            <div className="row g-3 align-items-center">
-              <div className="col-md-4">
-                <label htmlFor="projectName">Project Name</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="projectName"
-                  id="projectName"
-                  value={formData.projectName}
-                  onChange={handleInputChange}
-                />
-              </div>
+      </div>
 
-              <div className="col-md-4">
-                <label htmlFor="description">Description</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="description"
-                  id="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                />
+      <div className="row">
+        <div className="col-12 col-xl-10">
+          <div className="card border-0 shadow-sm rounded-lg overflow-hidden">
+            <div className="card-header bg-white border-bottom py-3 px-4">
+              <h5 className="mb-0 fw-semibold text-dark">Project Details</h5>
+            </div>
+            <form className="form" onSubmit={handleSubmit}>
+              <div className="card-body p-4">
+                <div className="row g-4">
+                  <div className="col-md-6">
+                    <label htmlFor="projectName" className="form-label fw-medium text-dark small mb-1">
+                      Project Name <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control bg-light-soft border-0 px-3 py-2"
+                      name="projectName"
+                      id="projectName"
+                      placeholder="Enter project name"
+                      value={formData.projectName}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label htmlFor="description" className="form-label fw-medium text-dark small mb-1">
+                      Description
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control bg-light-soft border-0 px-3 py-2"
+                      name="description"
+                      id="description"
+                      placeholder="Brief description of the project"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="d-flex mt-4 justify-content-end">
-              <button className="btn btn-primary px-5" type="submit">
-                Save
-              </button>
-            </div>
+              <div className="card-footer bg-light-soft border-top py-3 px-4 d-flex justify-content-end gap-2">
+                <button type="button" className="btn btn-light border px-4 shadow-sm" onClick={handleClear}>
+                  Clear
+                </button>
+                <button type="submit" className="btn btn-primary px-4 shadow-sm">
+                  Save Project
+                </button>
+              </div>
+            </form>
           </div>
-        </form>
+        </div>
       </div>
     </Layout>
   );

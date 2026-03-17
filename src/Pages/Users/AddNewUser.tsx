@@ -119,99 +119,130 @@ const AddNewUser = () => {
 
   return (
     <Layout>
-        
-      <div className="container mt-4 py-5 d-flex justify-content-center align-items-center">
-        <form className="bg-white card shadow rounded p-4"  style={{ width: "100%", maxWidth: "500px" }} onSubmit={handleSubmit}>
-          <h2 className="mb-5 text-center">New User</h2>
-          <div className="mb-3">
-            <label className="form-label fw-bold">First Name</label>
-            <input
-              type="text"
-              name="firstName"
-              className="form-control"
-              value={formData.firstName}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          <div className="mb-3">
-            <label className="form-label fw-bold">Last Name</label>
-            <input
-              type="text"
-              name="lastName"
-              className="form-control"
-              value={formData.lastName}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+      <div className="d-flex align-items-center mb-4 gap-3">
+        <div>
+          <h2 className="mb-0 fw-bold text-dark">Add New User</h2>
+          <p className="text-muted mb-0 small">Create a new user account and assign roles and projects.</p>
+        </div>
+      </div>
 
-          <div className="mb-3">
-            <label className="form-label fw-bold">Email</label>
-            <input
-              type="email"
-              name="email"
-              className="form-control"
-              value={formData.email}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+      <div className="row justify-content-center">
+        <div className="col-12 col-xl-8">
+          <div className="card border-0 shadow-sm rounded-lg overflow-hidden">
+            <div className="card-header bg-white border-bottom py-3 px-4">
+              <h5 className="mb-0 fw-semibold text-dark">User Information</h5>
+            </div>
+            <form className="form" onSubmit={handleSubmit}>
+              <div className="card-body p-4">
+                <div className="row g-4">
+                  <div className="col-md-6">
+                    <label className="form-label fw-medium text-dark small mb-1">First Name <span className="text-danger">*</span></label>
+                    <input
+                      type="text"
+                      name="firstName"
+                      className="form-control bg-light-soft border-0 px-3 py-2"
+                      placeholder="e.g. John"
+                      value={formData.firstName}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label fw-medium text-dark small mb-1">Last Name <span className="text-danger">*</span></label>
+                    <input
+                      type="text"
+                      name="lastName"
+                      className="form-control bg-light-soft border-0 px-3 py-2"
+                      placeholder="e.g. Doe"
+                      value={formData.lastName}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
 
-          <div className="mb-3">
-            <label className="form-label fw-bold">Password</label>
-            <input
-              type="password"
-              name="password"
-              className="form-control"
-              value={formData.password}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+                  <div className="col-md-6">
+                    <label className="form-label fw-medium text-dark small mb-1">Email <span className="text-danger">*</span></label>
+                    <input
+                      type="email"
+                      name="email"
+                      className="form-control bg-light-soft border-0 px-3 py-2"
+                      placeholder="john.doe@example.com"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
 
-          <div className="mb-4">
-            <label className="form-label fw-bold">Role</label>
-            <select
-              name="role"
-              className="form-select"
-              value={formData.role}
-              onChange={handleInputChange}
-              required
-            >
-              <option value="">Select Role</option>
-              {roles.map((role) => (
-                <option key={role} value={role}>
-                  {role}
-                </option>
-              ))}
-            </select>
-          </div>
+                  <div className="col-md-6">
+                    <label className="form-label fw-medium text-dark small mb-1">Password <span className="text-danger">*</span></label>
+                    <input
+                      type="password"
+                      name="password"
+                      className="form-control bg-light-soft border-0 px-3 py-2"
+                      placeholder="Secure password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
 
-          <div className="mb-4">
-            <label className="form-label fw-bold" htmlFor="projectId">
-              Projects
-            </label>
-            <select
-              name="projectId"
-              id="projectId"
-              className="form-select"
-              value={formDataProjectAssignee.projectId}
-              onChange={handleProjectInputChange}
-            >
-              <option value=""> Select Project </option>
-              {projectsData.map((item) => (
-                <option key={item.projectId} value={item.projectId}>
-                  {item.projectName}
-                </option>
-              ))}
-            </select>
-          </div>
+                  <div className="col-12 mt-4 mb-2">
+                     <h6 className="fw-semibold text-dark border-bottom pb-2">Assignments</h6>
+                  </div>
 
-          <button type="submit" className="btn btn-primary w-100">
-            Add User
-          </button>
-        </form>
+                  <div className="col-md-6">
+                    <label className="form-label fw-medium text-dark small mb-1">Role <span className="text-danger">*</span></label>
+                    <select
+                      name="role"
+                      className="form-select bg-light-soft border-0 px-3 py-2"
+                      value={formData.role}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="" disabled>Select Role</option>
+                      {roles.map((role) => (
+                        <option key={role} value={role}>
+                          {role}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label fw-medium text-dark small mb-1" htmlFor="projectId">
+                      Assign to Project
+                    </label>
+                    <select
+                      name="projectId"
+                      id="projectId"
+                      className="form-select bg-light-soft border-0 px-3 py-2"
+                      value={formDataProjectAssignee.projectId}
+                      onChange={handleProjectInputChange}
+                    >
+                      <option value="">Select Project</option>
+                      {projectsData.map((item) => (
+                        <option key={item.projectId} value={item.projectId}>
+                          {item.projectName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div className="card-footer bg-light-soft border-top py-3 px-4 d-flex justify-content-end gap-2">
+                <button type="button" className="btn btn-light border px-4 shadow-sm" onClick={() => {
+                   setFormData({ firstName: "", lastName: "", email: "", password: "", role: "" });
+                   setFormDataProjectAssignee({ userId: "", projectId: "" });
+                }}>
+                  Clear
+                </button>
+                <button type="submit" className="btn btn-primary px-4 shadow-sm">
+                  Create User
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
     </Layout>
   );

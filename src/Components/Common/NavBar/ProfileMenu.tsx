@@ -33,50 +33,54 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
   return (
     <div className="position-relative" ref={dropdownRef}>
       <div
-        className="d-flex align-items-center gap-2 cursor-pointer"
+        className="d-flex align-items-center gap-2 cursor-pointer border rounded-pill p-1 ps-2 hover-bg-light transition-base bg-white shadow-sm"
         onClick={() => setOpen(!open)}
         style={{ cursor: "pointer" }}
       >
+        <span className="fw-medium text-dark mx-2 fs-6">{name}</span>
         <img
           src={
             profileImage ||
             "https://via.placeholder.com/40x40.png?text=U"
           }
           alt="Profile"
-          className="rounded-circle"
-          style={{ width: "40px", height: "40px", objectFit: "cover" }}
+          className="rounded-circle border"
+          style={{ width: "36px", height: "36px", objectFit: "cover" }}
         />
-        <span className="fw-bold">{name}</span>
       </div>
 
       {open && (
         <div
-          className="position-absolute bg-white border shadow p-2 mt-2"
+          className="position-absolute bg-white border shadow-lg mt-2 py-2"
           style={{
             right: 0,
             top: "100%",
-            minWidth: "150px",
+            minWidth: "180px",
             zIndex: 1000,
-            borderRadius: "6px",
+            borderRadius: "0.75rem",
           }}
         >
+          <div className="px-3 py-2 border-bottom mb-2">
+            <p className="mb-0 fw-medium text-dark">{name}</p>
+            <p className="mb-0 small text-muted">Administrator</p>
+          </div>
           <button
-            className="btn btn-sm btn-outline-primary w-100 mb-2"
+            className="btn btn-link text-decoration-none text-dark w-100 text-start px-3 py-2 hover-bg-light rounded-0 d-flex align-items-center gap-2"
             onClick={() => {
               setOpen(false);
               onSettings();
             }}
           >
-            Settings
+            <i className="bi bi-gear text-secondary"></i> Settings
           </button>
           <button
-            className="btn btn-sm btn-outline-danger w-100"
+            className="btn btn-link text-decoration-none text-danger w-100 text-start px-3 py-2 hover-bg-light rounded-0 d-flex align-items-center gap-2"
             onClick={() => {
               setOpen(false);
               onLogout();
             }}
           >
-            Logout
+            <i className="bi bi-box-arrow-right"></i> Logout
           </button>
         </div>
       )}

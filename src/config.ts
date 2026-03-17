@@ -1,4 +1,4 @@
  const config = {
-    baseUrl: "https://localhost:7040/api/"
+    baseUrl: "http://localhost:5201/api/"
 }
 export default config;

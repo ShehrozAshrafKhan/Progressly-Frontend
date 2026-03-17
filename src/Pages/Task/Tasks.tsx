@@ -291,110 +291,146 @@ const Tasks = () => {
 };
   return (
     <Layout>
-      <div>
-        <h1>Tasks</h1>
-        <div className="d-grid gap-2 d-md-flex justify-content-md-end mb-2">
+      <div className="container-fluid p-0">
+        <div className="d-flex justify-content-between align-items-center mb-4 gap-3 flex-wrap">
+        <div>
+          <h2 className="mb-1 fw-bold text-dark">Tasks</h2>
+          <p className="text-muted mb-0">Manage and track all project tasks.</p>
+        </div>
+        <div className="d-flex gap-2">
           <button
-            className="btn btn-primary me-md-2"
+            className="btn btn-light d-flex align-items-center gap-2 transition-base px-3 shadow-sm border"
             type="button"
             onClick={handleGetTasksReport}
           >
-           Print
+            <i className="bi bi-printer"></i>
+            <span className="fw-medium">Print Report</span>
           </button>
           <button
-            className="btn btn-success me-md-2"
+            className="btn btn-primary d-flex align-items-center gap-2 transition-base px-3 shadow-sm"
             type="button"
             onClick={handleAddNewTask}
           >
-            Add New
+             <i className="bi bi-plus-lg"></i>
+             <span className="fw-medium">Add New Task</span>
           </button>
         </div>
-        <div className="card mt-3">
-          <div className="card-body">
-            <div className="table-responsive">
-              <table className="table table-striped">
-                <thead>
+      </div>
+
+      <div className="card border-0 shadow-sm rounded-lg overflow-hidden mt-3">
+        <div className="card-body p-0">
+          <div className="table-responsive">
+            <table className="table table-hover align-middle mb-0">
+              <thead className="table-light text-muted">
+                <tr>
+                  <th className="px-4 py-3 text-uppercase fw-semibold" style={{ fontSize: '0.8rem', letterSpacing: '0.5px' }}>Task No</th>
+                  <th className="px-4 py-3 text-uppercase fw-semibold" style={{ fontSize: '0.8rem', letterSpacing: '0.5px' }}>Task Name</th>
+                  <th className="px-4 py-3 text-uppercase fw-semibold" style={{ fontSize: '0.8rem', letterSpacing: '0.5px' }}>Status</th>
+                  <th className="px-4 py-3 text-uppercase fw-semibold" style={{ fontSize: '0.8rem', letterSpacing: '0.5px' }}>Priority</th>
+                  <th className="px-4 py-3 text-uppercase fw-semibold" style={{ fontSize: '0.8rem', letterSpacing: '0.5px' }}>Module Name</th>
+                  <th className="px-4 py-3 text-uppercase fw-semibold" style={{ fontSize: '0.8rem', letterSpacing: '0.5px' }}>Attachment</th>
+                  <th className="px-4 py-3 text-uppercase fw-semibold" style={{ fontSize: '0.8rem', letterSpacing: '0.5px' }}>Assigned By</th>
+                  <th className="px-4 py-3 text-uppercase fw-semibold" style={{ fontSize: '0.8rem', letterSpacing: '0.5px' }}>Active</th>
+                  <th className="px-4 py-3 text-uppercase fw-semibold text-end" style={{ fontSize: '0.8rem', letterSpacing: '0.5px' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody className="border-top-0">
+                {tblData.length === 0 ? (
                   <tr>
-                    <th>Task No</th>
-                    <th>Task Name</th>
-                    <th>Description</th>
-                    <th>Status</th>
-                    <th>Priority</th>
-                    <th>Module Name</th>
-                    <th>Attachment</th>
-                    <th>Assigned By</th>
-                    <th>Active</th>
-                    <th>Action</th>
+                    <td colSpan={9} className="text-center py-5 text-muted">
+                      <div className="d-flex flex-column align-items-center">
+                        <i className="bi bi-list-task fs-1 mb-2 text-light"></i>
+                        <p className="mb-0">No tasks found</p>
+                      </div>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {tblData.map((item, index) => (
-                    <tr key={item.taskId || index}>
-                      <td className="align-middle">{item.taskNo}</td>
-                      <td className="align-middle">{item.title}</td>
-                      <td className="align-middle">{item.description}</td>
-                      <td className="align-middle">{item.status}</td>
-                      <td className="align-middle">{item.priority}</td>
-                      <td className="align-middle">{item.moduleName}</td>
-                      <td className="align-middle">
+                ) : (
+                  tblData.map((item, index) => (
+                    <tr key={item.taskId || index} className="transition-base">
+                      <td className="px-4 py-3 fw-medium text-dark">{item.taskNo}</td>
+                      <td className="px-4 py-3">
+                         <div className="fw-medium text-dark">{item.title}</div>
+                         <div className="small text-muted text-truncate" style={{ maxWidth: "200px" }}>{item.description}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                         <span className={`badge bg-${item.status === 'Completed' ? 'success' : item.status === 'In Progress' ? 'primary' : item.status === 'Review' ? 'info' : 'secondary'} bg-opacity-10 text-${item.status === 'Completed' ? 'success' : item.status === 'In Progress' ? 'primary' : item.status === 'Review' ? 'info' : 'secondary'} px-2 py-1 rounded-pill fw-medium small`}>
+                            {item.status || "Pending"}
+                         </span>
+                      </td>
+                      <td className="px-4 py-3">
+                         <span className={`badge bg-${item.priority === 'High' ? 'danger' : item.priority === 'Medium' ? 'warning' : 'info'} bg-opacity-10 text-${item.priority === 'High' ? 'danger' : item.priority === 'Medium' ? 'warning text-dark' : 'info'} px-2 py-1 rounded-pill fw-medium small`}>
+                           {item.priority}
+                         </span>
+                      </td>
+                      <td className="px-4 py-3 text-muted">{item.moduleName}</td>
+                      <td className="px-4 py-3">
                         {item.attachments && item.attachments.length > 0 ? (
-                          <ul className="list-unstyled mb-0 cursor-pointer">
+                          <div className="d-flex flex-column gap-1">
                             {item.attachments.map((att) => (
-                              <li key={att.taskAttachmentId}>
-                                <a
-                                  href="#"
-                                  className="text-decoration-none"
-                                  onClick={(e) => handleAttachmentClick(e, att)}
+                                <span
+                                  key={att.taskAttachmentId}
+                                  className="badge bg-light text-dark border d-inline-flex align-items-center gap-1 p-1 px-2 hover-scale cursor-pointer transition-base"
+                                  onClick={(e) => handleAttachmentClick(e as any, att)}
+                                  title={att.fileName}
+                                  style={{ maxWidth: "120px" }}
                                 >
-                                  📎 {att.fileName}
-                                </a>
-                              </li>
+                                  <i className="bi bi-paperclip text-muted"></i>
+                                  <span className="text-truncate">{att.fileName}</span>
+                                </span>
                             ))}
-                          </ul>
+                          </div>
                         ) : (
-                          <span className="text-muted">No Attachment</span>
+                          <span className="text-muted small">-</span>
                         )}
                       </td>
-                      <td className="align-middle">
+                      <td className="px-4 py-3">
                         {item.assignees && item.assignees.length > 0 ? (
-                          <ul className="list-unstyled mb-0 cursor-pointer">
-                            {item.assignees.map((att) => (
-                              <li key={att.taskAssigneeId}>
-                                {att.assignedUserName}
-                              </li>
-                            ))}
-                          </ul>
+                            <div className="d-flex flex-wrap gap-1">
+                              {item.assignees.map((att) => (
+                                <span key={att.taskAssigneeId} className="badge bg-light-soft text-dark border px-2 py-1 fw-normal">
+                                  {att.assignedUserName}
+                                </span>
+                              ))}
+                            </div>
                         ) : (
-                          <span className="text-muted">Not Assign</span>
+                          <span className="text-muted small">Unassigned</span>
                         )}
                       </td>
-                      <td className="align-middle">
-                        <div className="form-check form-switch">
+                      <td className="px-4 py-3">
+                        <div className="form-check form-switch m-0">
                           <input
-                            className="form-check-input"
+                            className="form-check-input cursor-pointer"
                             type="checkbox"
                             role="switch"
                             id={`flexSwitchCheckChecked-${index}`}
                             checked={item.isActive}
-                            style={{ width: "3rem", height: "1.5rem" ,cursor:"pointer"}}
                             onChange={() => handleInputChange(item.taskId)}
+                            style={{ 
+                              width: "2.5rem", 
+                              height: "1.25rem",
+                              backgroundColor: item.isActive ? 'var(--bs-primary)' : '',
+                              borderColor: item.isActive ? 'var(--bs-primary)' : ''
+                            }}
                           />
                         </div>
                       </td>
-                      <td className="align-middle">
-                        <CiEdit
-                          fontSize={25}
-                         style={{cursor:"pointer"}}
-                          onClick={() => handleEdit(item.taskId)}
-                        />
+                      <td className="px-4 py-3 text-end">
+                         <button 
+                           className="btn btn-sm btn-light btn-icon text-primary hover-scale transition-base shadow-sm border"
+                           onClick={() => handleEdit(item.taskId)}
+                           title="Edit Task"
+                         >
+                           <CiEdit size={18} />
+                         </button>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
+      </div>
         {showModal && (
           <div
             className="modal fade show"
@@ -403,8 +439,8 @@ const Tasks = () => {
           >
             <div className="modal-dialog modal-lg modal-dialog-centered">
               <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">
+                <div className="modal-header border-bottom-0 pb-0">
+                  <h5 className="modal-title fw-bold">
                     {selectedAttachment?.fileName || "File Viewer"}
                   </h5>
                   <button
@@ -413,10 +449,10 @@ const Tasks = () => {
                     onClick={closeModal}
                   ></button>
                 </div>
-                <div className="modal-body text-center">
+                <div className="modal-body text-center p-4">
                   {renderFileContent()}
                 </div>
-                <div className="modal-footer">
+                <div className="modal-footer border-top-0 pt-0">
                   {selectedAttachment &&
                     selectedAttachment.filePath &&
                     !fileError && (
@@ -424,15 +460,15 @@ const Tasks = () => {
                         href={selectedAttachment.filePath}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="btn btn-success"
+                        className="btn btn-primary px-4 shadow-sm"
                         download={selectedAttachment.fileName}
                       >
-                        Download
+                        Download File
                       </a>
                     )}
                   <button
                     type="button"
-                    className="btn btn-secondary"
+                    className="btn btn-light border px-4 shadow-sm"
                     onClick={closeModal}
                   >
                     Close
@@ -445,7 +481,7 @@ const Tasks = () => {
 
         {/* Modal Backdrop */}
         {showModal && (
-          <div className="modal-backdrop fade show" onClick={closeModal}></div>
+          <div className="modal-backdrop fade show" style={{ opacity: 0.5 }} onClick={closeModal}></div>
         )}
       </div>
     </Layout>

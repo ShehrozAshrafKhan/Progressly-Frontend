@@ -256,143 +256,150 @@ const UserTasksDetail = () => {
 
   return (
     <Layout>
-      <div className="card shadow-sm p-5">
-        <div className="d-flex gap-3 align-items-center mb-3">
-          <IoMdArrowRoundBack
-            fontSize={30}
-            onClick={handleBack}
-            className="cursor-pointer"
-            style={{ cursor: "pointer" }}
-          />
-          <h2 className="">Tasks</h2>
-        </div>
-        <div className="d-grid gap-2 d-md-flex justify-content-md-end mb-2">
+      <div className="container-fluid p-0">
+        <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+          <div className="d-flex align-items-center gap-3">
+            <button
+              onClick={handleBack}
+              className="btn btn-light btn-icon shadow-sm border transition-base hover-scale"
+              title="Back"
+            >
+              <IoMdArrowRoundBack size={20} />
+            </button>
+            <div>
+              <h2 className="mb-1 fw-bold text-dark">Tasks</h2>
+              <p className="text-muted mb-0">Manage your specific assigned tasks.</p>
+            </div>
+          </div>
           <button
-            className="btn btn-primary me-md-2"
-            type="button"
+            className="btn btn-primary shadow-sm hover-scale transition-base d-flex align-items-center gap-2"
             onClick={handleAddNewTask}
           >
-            Add New
+            <i className="bi bi-plus-lg"></i>
+            Add New Task
           </button>
         </div>
-        <div className="card mt-3">
-          <div className="card-body">
+
+        <div className="card shadow-sm border-0 rounded-lg overflow-hidden">
+          <div className="card-body p-0">
             <div className="table-responsive">
-              <table className="table">
-                <thead>
+              <table className="table table-hover align-middle mb-0">
+                <thead className="bg-light-soft text-muted sticky-top z-1">
                   <tr>
-                    <th>Task No</th>
-                    <th>Task Name</th>
-                    <th>Description</th>
-                    <th>Status</th>
-                    <th>Priority</th>
-                    <th>Module Name</th>
-                    <th>Attachment</th>
-                    <th>Assigned By</th>
-                    <th>Action</th>
+                    <th className="px-4 py-3 fw-semibold border-0">Task No</th>
+                    <th className="px-4 py-3 fw-semibold border-0">Title</th>
+                    <th className="px-4 py-3 fw-semibold border-0">Description</th>
+                    <th className="px-4 py-3 fw-semibold border-0">Status</th>
+                    <th className="px-4 py-3 fw-semibold border-0">Priority</th>
+                    <th className="px-4 py-3 fw-semibold border-0">Module</th>
+                    <th className="px-4 py-3 fw-semibold border-0">Attachments</th>
+                    <th className="px-4 py-3 fw-semibold border-0">Assignees</th>
+                    <th className="px-4 py-3 fw-semibold border-0 text-end">Action</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {tblData.map((item, index) => (
-                    <tr key={item.taskId || index}>
-                      <td style={{background:`${ item.status === "COMPLETED" && item.isActive === false
-                          ? "#56f580"
-                          : item.status === "COMPLETED" &&
-                            item.isActive === true
-                          ? "#ebd759" 
-                          : ""}`}} className="align-middle">{item.taskNo}</td>
-                      <td style={{background:`${ item.status === "COMPLETED" && item.isActive === false
-                          ? "#56f580"
-                          : item.status === "COMPLETED" &&
-                            item.isActive === true
-                          ? "#ebd759" 
-                          : ""}`}}    className="align-middle">{item.title}</td>
-                      <td style={{background:`${ item.status === "COMPLETED" && item.isActive === false
-                          ? "#56f580"
-                          : item.status === "COMPLETED" &&
-                            item.isActive === true
-                          ? "#ebd759" 
-                          : ""}`}}  className="align-middle">{item.description}</td>
-                      <td style={{background:`${ item.status === "COMPLETED" && item.isActive === false
-                          ? "#56f580"
-                          : item.status === "COMPLETED" &&
-                            item.isActive === true
-                          ? "#ebd759" 
-                          : ""}`}}  className="align-middle">{item.status}</td>
-                      <td  style={{background:`${ item.status === "COMPLETED" && item.isActive === false
-                          ? "#56f580"
-                          : item.status === "COMPLETED" &&
-                            item.isActive === true
-                          ? "#ebd759" 
-                          : ""}`}} className="align-middle">{item.priority}</td>
-                      <td style={{background:`${ item.status === "COMPLETED" && item.isActive === false
-                          ? "#56f580"
-                          : item.status === "COMPLETED" &&
-                            item.isActive === true
-                          ? "#ebd759" 
-                          : ""}`}}  className="align-middle">{item.moduleName}</td>
-                      <td  style={{background:`${ item.status === "COMPLETED" && item.isActive === false
-                          ? "#56f580"
-                          : item.status === "COMPLETED" &&
-                            item.isActive === true
-                          ? "#ebd759" 
-                          : ""}`}} className="align-middle">
-                        {item.attachments && item.attachments.length > 0 ? (
-                          <ul className="list-unstyled mb-0 cursor-pointer">
-                            {item.attachments.map((att) => (
-                              <li key={att.taskAttachmentId}>
-                                <a
-                                  href="#"
-                                  className="text-decoration-none"
-                                  onClick={(e) => handleAttachmentClick(e, att)}
-                                >
-                                  📎 {att.fileName}
-                                </a>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <span className="text-muted">No Attachment</span>
-                        )}
-                      </td>
-                      <td style={{background:`${ item.status === "COMPLETED" && item.isActive === false
-                          ? "#56f580"
-                          : item.status === "COMPLETED" &&
-                            item.isActive === true
-                          ? "#ebd759" 
-                          : ""}`}} className="align-middle">
-                        {item.assignees && item.assignees.length > 0 ? (
-                          <ul className="list-unstyled mb-0 cursor-pointer">
-                            {item.assignees.map((att) => (
-                              <li key={att.taskAssigneeId}>
-                                {att.assignedUserName}
-                              </li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <span className="text-muted">Not Assign</span>
-                        )}
-                      </td>
-                      <td style={{background:`${ item.status === "COMPLETED" && item.isActive === false
-                          ? "#56f580"
-                          : item.status === "COMPLETED" &&
-                            item.isActive === true
-                          ? "#ebd759" 
-                          : ""}`}} className="align-middle">
-                        <CiEdit
-                          fontSize={25}
-                          className="cursor-pointer"
-                          style={{ cursor: "pointer" }}
-                          onClick={() => handleEdit(item.taskId)}
-                        />
+                <tbody className="border-top-0">
+                  {tblData.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="text-center py-5 text-muted">
+                        <div className="d-flex flex-column align-items-center">
+                           <i className="bi bi-inbox fs-1 text-light-muted mb-2"></i>
+                           <p className="mb-0">No tasks found.</p>
+                        </div>
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    tblData.map((item, index) => {
+                      let bgColor = "";
+                      if (item.status === "COMPLETED" && !item.isActive) {
+                        bgColor = "rgba(86, 245, 128, 0.2)"; // Softer green
+                      } else if (item.status === "COMPLETED" && item.isActive) {
+                        bgColor = "rgba(235, 215, 89, 0.2)"; // Softer yellow
+                      }
+
+                      return (
+                        <tr key={item.taskId || index} style={{ backgroundColor: bgColor }} className="border-bottom">
+                          <td className="px-4 py-3 text-dark fw-medium">
+                            {item.taskNo || <span className="text-muted small">-</span>}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="fw-medium text-dark">{item.title}</span>
+                          </td>
+                          <td className="px-4 py-3 text-muted">
+                            <span className="text-truncate d-inline-block" style={{ maxWidth: '180px' }} title={item.description}>
+                              {item.description || "-"}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`badge px-2 py-1 fw-normal ${
+                              item.status === 'COMPLETED' ? 'bg-success-soft text-success' : 
+                              item.status === 'IN_PROGRESS' ? 'bg-primary-soft text-primary' : 
+                              'bg-warning-soft text-warning'
+                            }`}>
+                              {item.status.replace('_', ' ')}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`badge px-2 py-1 fw-normal bg-light text-dark border`}>
+                              {item.priority}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="text-dark">{item.moduleName || "-"}</span>
+                          </td>
+                          <td className="px-4 py-3">
+                            {item.attachments && item.attachments.length > 0 ? (
+                              <div className="d-flex flex-column gap-1">
+                                {item.attachments.map((att) => (
+                                  <a
+                                    key={att.taskAttachmentId}
+                                    href="#"
+                                    className="d-inline-flex align-items-center gap-1 text-decoration-none text-primary small hover-text-dark transition-base"
+                                    onClick={(e) => handleAttachmentClick(e, att)}
+                                  >
+                                    <i className="bi bi-paperclip"></i>
+                                    <span className="text-truncate" style={{ maxWidth: "120px" }} title={att.fileName}>
+                                      {att.fileName}
+                                    </span>
+                                  </a>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-muted small">-</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            {item.assignees && item.assignees.length > 0 ? (
+                                <div className="d-flex flex-wrap gap-1">
+                                  {item.assignees.map((att) => (
+                                    <span key={att.taskAssigneeId} className="badge bg-light-soft text-dark border px-2 py-1 fw-normal">
+                                      {att.assignedUserName}
+                                    </span>
+                                  ))}
+                                </div>
+                            ) : (
+                              <span className="text-muted small">Unassigned</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-end">
+                             <button 
+                               className="btn btn-sm btn-light btn-icon text-primary hover-scale transition-base shadow-sm border"
+                               onClick={() => handleEdit(item.taskId)}
+                               title="Edit Task"
+                             >
+                               <CiEdit size={18} />
+                             </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
         </div>
+
+        {/* Modal */}
         {showModal && (
           <div
             className="modal fade show"
@@ -401,8 +408,8 @@ const UserTasksDetail = () => {
           >
             <div className="modal-dialog modal-lg modal-dialog-centered">
               <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">
+                <div className="modal-header border-bottom-0 pb-0">
+                  <h5 className="modal-title fw-bold">
                     {selectedAttachment?.fileName || "File Viewer"}
                   </h5>
                   <button
@@ -411,10 +418,10 @@ const UserTasksDetail = () => {
                     onClick={closeModal}
                   ></button>
                 </div>
-                <div className="modal-body text-center">
+                <div className="modal-body text-center p-4">
                   {renderFileContent()}
                 </div>
-                <div className="modal-footer">
+                <div className="modal-footer border-top-0 pt-0">
                   {selectedAttachment &&
                     selectedAttachment.filePath &&
                     !fileError && (
@@ -422,7 +429,7 @@ const UserTasksDetail = () => {
                         href={selectedAttachment.filePath}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="btn btn-success"
+                        className="btn btn-primary px-4 shadow-sm"
                         download={selectedAttachment.fileName}
                       >
                         Download
@@ -430,10 +437,10 @@ const UserTasksDetail = () => {
                     )}
                   <button
                     type="button"
-                    className="btn btn-secondary"
+                    className="btn btn-light border px-4 shadow-sm"
                     onClick={closeModal}
                   >
-                    Close
+                     Close
                   </button>
                 </div>
               </div>
@@ -443,7 +450,7 @@ const UserTasksDetail = () => {
 
         {/* Modal Backdrop */}
         {showModal && (
-          <div className="modal-backdrop fade show" onClick={closeModal}></div>
+           <div className="modal-backdrop fade show" style={{ opacity: 0.5 }} onClick={closeModal}></div>
         )}
       </div>
     </Layout>
