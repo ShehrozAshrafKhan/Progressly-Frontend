@@ -29,7 +29,7 @@ const Login = () => {
     }));
   };
 
-  const handleSubmit = async (event: any) => {
+ const handleSubmit = async (event: any) => {
     event.preventDefault();
     try {
       const url = `${config.baseUrl}Auth/login`;

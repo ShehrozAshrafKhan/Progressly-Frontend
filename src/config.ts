@@ -1,4 +1,4 @@
  const config = {
-    baseUrl: "http://localhost:5201/api/"
+    baseUrl: "https://wisplike-gas-trustable.ngrok-free.dev/api/"
 }
 export default config;
