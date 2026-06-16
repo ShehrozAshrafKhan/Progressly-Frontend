@@ -45,7 +45,10 @@ const CompletedTasks = () => {
   const [selectedAttachment, setSelectedAttachment] =
     useState<TaskAttachment | null>(null);
   const [fileError, setFileError] = useState(false);
+const [searchTerm, setSearchTerm] = useState("");
+const [currentPage, setCurrentPage] = useState(1);
 
+const rowsPerPage = 10;
   useEffect(() => {
     handleGetCompletedTasks();
   }, []);
@@ -275,6 +278,34 @@ const CompletedTasks = () => {
     }
   };
 
+  const filteredTasks = tblData.filter((item) =>
+  [
+    item.taskNo,
+    item.title,
+    item.description,
+    item.status,
+    item.priority,
+    item.moduleName,
+  ]
+    .join(" ")
+    .toLowerCase()
+    .includes(searchTerm.toLowerCase())
+);
+
+const totalPages = Math.ceil(filteredTasks.length / rowsPerPage);
+
+const paginatedTasks = filteredTasks.slice(
+  (currentPage - 1) * rowsPerPage,
+  currentPage * rowsPerPage
+);
+
+const handlePageChange = (page: number) => {
+  setCurrentPage(page);
+};
+
+useEffect(() => {
+  setCurrentPage(1);
+}, [searchTerm]);
   return (
     <Layout>
       <div className="container-fluid p-0">
@@ -286,6 +317,19 @@ const CompletedTasks = () => {
       </div>
 
       <div className="card border-0 shadow-sm rounded-lg overflow-hidden mt-3">
+        <div className="card-header bg-white border-bottom p-3">
+          <div className="row">
+            <div className="col-md-4">
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Search tasks..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
         <div className="card-body p-0">
           <div className="table-responsive">
             <table className="table table-hover align-middle mb-0">
@@ -303,7 +347,7 @@ const CompletedTasks = () => {
                 </tr>
               </thead>
               <tbody className="border-top-0">
-                {tblData.length === 0 ? (
+                {filteredTasks.length === 0 ? (
                   <tr>
                     <td colSpan={userRole !== "USER" ? 9 : 8} className="text-center py-5 text-muted">
                       <div className="d-flex flex-column align-items-center">
@@ -313,7 +357,7 @@ const CompletedTasks = () => {
                     </td>
                   </tr>
                 ) : (
-                  tblData.map((item, index) => (
+                  paginatedTasks.map((item, index) => (
                     <tr key={item.taskId || index} className="transition-base">
                       <td className="px-4 py-3 fw-medium text-dark">{item.taskNo}</td>
                       <td className="px-4 py-3">
@@ -336,12 +380,15 @@ const CompletedTasks = () => {
                            <div className="d-flex flex-column gap-1">
                             {item.attachments.map((att) => (
                                 <span
-                                  key={att.taskAttachmentId}
-                                  className="badge bg-light text-dark border d-inline-flex align-items-center gap-1 p-1 px-2 hover-scale cursor-pointer transition-base"
-                                  onClick={(e) => handleAttachmentClick(e as any, att)}
-                                  title={att.fileName}
-                                  style={{ maxWidth: "120px" }}
-                                >
+  key={att.taskAttachmentId}
+  className="badge bg-light text-dark border d-inline-flex align-items-center gap-1 p-1 px-2 hover-scale transition-base"
+  onClick={(e) => handleAttachmentClick(e as any, att)}
+  title={att.fileName}
+  style={{
+    maxWidth: "120px",
+    cursor: "pointer",
+  }}
+>
                                   <i className="bi bi-paperclip text-muted"></i>
                                   <span className="text-truncate">{att.fileName}</span>
                                 </span>
@@ -398,6 +445,62 @@ const CompletedTasks = () => {
                 )}
               </tbody>
             </table>
+            <div className="d-flex justify-content-between align-items-center p-3 border-top">
+  <div className="text-muted small">
+    Showing{" "}
+    {filteredTasks.length === 0
+      ? 0
+      : (currentPage - 1) * rowsPerPage + 1}
+    {" - "}
+    {Math.min(currentPage * rowsPerPage, filteredTasks.length)}
+    {" of "}
+    {filteredTasks.length} records
+  </div>
+
+  <nav>
+    <ul className="pagination pagination-sm mb-0">
+      <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+        <button
+          className="page-link"
+          onClick={() => handlePageChange(currentPage - 1)}
+        >
+          Previous
+        </button>
+      </li>
+
+      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+        <li
+          key={page}
+          className={`page-item ${
+            currentPage === page ? "active" : ""
+          }`}
+        >
+          <button
+            className="page-link"
+            onClick={() => handlePageChange(page)}
+          >
+            {page}
+          </button>
+        </li>
+      ))}
+
+      <li
+        className={`page-item ${
+          currentPage === totalPages || totalPages === 0
+            ? "disabled"
+            : ""
+        }`}
+      >
+        <button
+          className="page-link"
+          onClick={() => handlePageChange(currentPage + 1)}
+        >
+          Next
+        </button>
+      </li>
+    </ul>
+  </nav>
+</div>
           </div>
         </div>
       </div>
