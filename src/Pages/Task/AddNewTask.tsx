@@ -47,6 +47,7 @@ const AddNewTask = () => {
     estimatedHours: 0,
     moduleId: "",
     dueDate: "" as string | null,
+    taskDate: "" as string | null,
   });
 
   const [formTaskAssignee, setFormTaskAssignee] = useState({
@@ -116,6 +117,7 @@ const AddNewTask = () => {
       estimatedHours: 0,
       moduleId: "",
       dueDate: "",
+      taskDate: "",
     });
     setFormTaskAssignee({ taskId: "", assignedby: "" });
     setFile(null);
@@ -128,6 +130,7 @@ const AddNewTask = () => {
       const preparedData = {
         ...formData,
         dueDate: formData.dueDate === "" ? null : formData.dueDate,
+        taskDate: formData.taskDate === "" ? null : formData.taskDate,
         taskNo: formData.taskNo === "" ? null : formData.taskNo,
       };
 
@@ -284,6 +287,20 @@ const AddNewTask = () => {
                  </select>
                </div>
                <div className="col-md-3">
+                 <label className="form-label fw-medium text-dark small mb-1">Task Date <span className="text-muted fw-normal">(Optional)</span></label>
+                 <input
+                   type="datetime-local"
+                   className="form-control bg-light-soft border-0 px-3 py-2 cursor-pointer"
+                   name="taskDate"
+                   value={formData.taskDate || ""}
+                   onChange={handleInputChange}
+                 />
+               </div>
+             </div>
+
+             <div className="row g-4 mb-5">
+
+                <div className="col-md-3">
                  <label className="form-label fw-medium text-dark small mb-1">Due Date <span className="text-muted fw-normal">(Optional)</span></label>
                  <input
                    type="datetime-local"
@@ -293,10 +310,8 @@ const AddNewTask = () => {
                    onChange={handleInputChange}
                  />
                </div>
-             </div>
 
-             <div className="row g-4 mb-5">
-               <div className="col-md-4">
+               <div className="col-md-3">
                  <label className="form-label fw-medium text-dark small mb-1">Module</label>
                  <select
                    name="moduleId"
@@ -314,7 +329,7 @@ const AddNewTask = () => {
                  </select>
                </div>
 
-               <div className="col-md-4">
+               <div className="col-md-3">
                  <label className="form-label fw-medium text-dark small mb-1">Assign To <span className="text-muted fw-normal">(Optional)</span></label>
                  <select
                    name="assignedby"
@@ -332,7 +347,7 @@ const AddNewTask = () => {
                  </select>
                </div>
 
-               <div className="col-md-4">
+               <div className="col-md-3">
                  <label className="form-label fw-medium text-dark small mb-1">Attachment <span className="text-muted fw-normal">(Optional)</span></label>
                  <input
                    type="file"

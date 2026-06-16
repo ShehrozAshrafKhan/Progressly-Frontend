@@ -359,7 +359,7 @@ useEffect(() => {
                 ) : (
                   paginatedTasks.map((item, index) => (
                     <tr key={item.taskId || index} className="transition-base">
-                      <td className="px-4 py-3 fw-medium text-dark">{item.taskNo}</td>
+                      <td className="px-4 py-3 fw-medium text-dark">{item.taskNo || '-'}</td>
                       <td className="px-4 py-3">
                          <div className="fw-medium text-dark">{item.title}</div>
                          <div className="small text-muted text-truncate" style={{ maxWidth: "200px" }}>{item.description}</div>
@@ -380,15 +380,15 @@ useEffect(() => {
                            <div className="d-flex flex-column gap-1">
                             {item.attachments.map((att) => (
                                <span
-  key={att.taskAttachmentId}
-  className="badge bg-light text-dark border d-inline-flex align-items-center gap-1 p-1 px-2 hover-scale transition-base"
-  onClick={(e) => handleAttachmentClick(e as any, att)}
-  title={att.fileName}
-  style={{
-    maxWidth: "120px",
-    cursor: "pointer",
-  }}
->
+                                  key={att.taskAttachmentId}
+                                  className="badge bg-light text-dark border d-inline-flex align-items-center gap-1 p-1 px-2 hover-scale transition-base"
+                                  onClick={(e) => handleAttachmentClick(e as any, att)}
+                                  title={att.fileName}
+                                  style={{
+                                    maxWidth: "120px",
+                                    cursor: "pointer",
+                                  }}
+                                >
                                   <i className="bi bi-paperclip text-muted"></i>
                                   <span className="text-truncate">{att.fileName}</span>
                                 </span>

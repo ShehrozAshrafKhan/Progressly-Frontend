@@ -58,7 +58,9 @@ const EditTask = () => {
   let params = useParams();
   const navigate = useNavigate();
   const handleBack = () => {
-   userRole!=="USER"?navigate("/tasks"):navigate("/tasks/userTasksDetail/ALL")
+    userRole !== "USER"
+      ? navigate("/tasks")
+      : navigate("/tasks/userTasksDetail/ALL");
   };
 
   const [tblData, setTblData] = useState<Module[]>([]);
@@ -90,13 +92,14 @@ const EditTask = () => {
   const [formData, setFormData] = useState({
     title: "",
     taskNo: "",
-    isActive:false,
+    isActive: false,
     description: "",
     status: "PENDING",
     priority: "LOW",
     estimatedHours: 0,
     moduleId: "",
     dueDate: "" as string | null,
+    taskDate: "" as string | null,
   });
 
   const [formTaskAssignee, setFormTaskAssignee] = useState({
@@ -122,7 +125,7 @@ const EditTask = () => {
         `${config.baseUrl}TaskCodeChanges/GetTaskCodeChangesByTaskId`,
         {
           params: { taskId: params.taskId },
-        }
+        },
       );
 
       const grouped: Record<string, CodeInputType[]> = {};
@@ -159,7 +162,7 @@ const EditTask = () => {
       } else {
         ShowMessage(
           2,
-          response?.data?.result?.errors?.[0] || "No Tags data found."
+          response?.data?.result?.errors?.[0] || "No Tags data found.",
         );
       }
     } catch (e: any) {
@@ -198,7 +201,7 @@ const EditTask = () => {
             taskData.assignees?.map((a: any) => ({
               userId: a.assignedBy,
               userName: a.assignedUserName,
-            })) || []
+            })) || [],
           );
         }
         if (taskData.taskTags && taskData.taskTags.length > 0) {
@@ -206,13 +209,13 @@ const EditTask = () => {
             taskData.taskTags.map((tag: any) => ({
               tagId: tag.tagId,
               tagName: tag.tagName,
-            }))
+            })),
           );
         }
       } else {
         ShowMessage(
           2,
-          response?.data?.result?.errors?.[0] || "No Task data found."
+          response?.data?.result?.errors?.[0] || "No Task data found.",
         );
       }
     } catch (e: any) {
@@ -244,7 +247,7 @@ const EditTask = () => {
       } else {
         ShowMessage(
           2,
-          response?.data?.result?.errors?.[0] || "No TaskAssignee data found."
+          response?.data?.result?.errors?.[0] || "No TaskAssignee data found.",
         );
       }
     } catch (e: any) {
@@ -261,7 +264,7 @@ const EditTask = () => {
       } else {
         ShowMessage(
           2,
-          response?.data?.result?.errors?.[0] || "No user data found."
+          response?.data?.result?.errors?.[0] || "No user data found.",
         );
       }
     } catch (e: any) {
@@ -278,7 +281,7 @@ const EditTask = () => {
       } else {
         ShowMessage(
           2,
-          response?.data?.result?.errors?.[0] || "No module data found."
+          response?.data?.result?.errors?.[0] || "No module data found.",
         );
       }
     } catch (e: any) {
@@ -295,7 +298,7 @@ const EditTask = () => {
     }
   };
   const handleUserInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     const key = name as keyof typeof formTaskAssignee;
@@ -320,7 +323,7 @@ const EditTask = () => {
     } else {
       // Admin/Other roles: only add if selectedUser exists in current assignedUsers list
       const alreadyAssigned = assignedUsers.find(
-        (u) => u.userId === selectedUser.userId
+        (u) => u.userId === selectedUser.userId,
       );
 
       if (!alreadyAssigned) {
@@ -341,12 +344,13 @@ const EditTask = () => {
       title: "",
       taskNo: "",
       description: "",
-      isActive:false,
+      isActive: false,
       status: "PENDING",
       priority: "LOW",
       estimatedHours: 0,
       moduleId: "",
       dueDate: "",
+      taskDate: "",
     });
     setFormTaskAssignee({ taskId: "", assignedby: "" });
     setFile(null);
@@ -362,6 +366,7 @@ const EditTask = () => {
       const preparedData = {
         ...formData,
         dueDate: formData.dueDate === "" ? null : formData.dueDate,
+        taskDate: formData.taskDate === "" ? null : formData.taskDate,
       };
       console.log(preparedData);
       const url = `${config.baseUrl}Tasks/UpdateTask`;
@@ -371,11 +376,11 @@ const EditTask = () => {
         const taskId = response.data.data;
         ShowMessage(1, "Task added successfully");
 
-        if (file && taskId) {
-          const existingAttachmentId =
-            taskAttachments.length > 0
-              ? taskAttachments[0].taskAttachmentId
-              : "";
+        const existingAttachmentId =
+          taskAttachments.length > 0
+            ? taskAttachments[0].taskAttachmentId
+            : "";
+        if (file && existingAttachmentId) {
           const formDataFile = new FormData();
           formDataFile.append("File", file);
           formDataFile.append("TaskAttachmentId", existingAttachmentId);
@@ -386,8 +391,24 @@ const EditTask = () => {
             formDataFile,
             {
               headers: { "Content-Type": "multipart/form-data" },
-            }
+            },
           );
+          if (uploadResponse.data.result.succeeded) {
+            ShowMessage(1, "File uploaded successfully");
+          } else {
+            ShowMessage(2, "Task saved, but file upload failed");
+          }
+        }
+        else if (file && existingAttachmentId=='') {
+          const formDataFile = new FormData();
+          formDataFile.append("File", file);
+          formDataFile.append("taskId", taskId);
+
+          const fileUploadUrl = `${config.baseUrl}TaskAttachments/SaveTaskAttachments`;
+          const uploadResponse = await axios.post(fileUploadUrl, formDataFile, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+
           if (uploadResponse.data.result.succeeded) {
             ShowMessage(1, "File uploaded successfully");
           } else {
@@ -412,7 +433,7 @@ const EditTask = () => {
 
             const completeResponse = await axios.patch(
               completeUrl,
-              completeBody
+              completeBody,
             );
 
             if (completeResponse.data.result.succeeded) {
@@ -421,7 +442,7 @@ const EditTask = () => {
               ShowMessage(
                 2,
                 completeResponse.data.result.errors[0] ||
-                  "Failed to send completion request"
+                  "Failed to send completion request",
               );
             }
           } catch (err: any) {
@@ -442,7 +463,7 @@ const EditTask = () => {
             } else {
               ShowMessage(
                 2,
-                tagResponse.data.result.errors?.[0] || "Failed to save tags"
+                tagResponse.data.result.errors?.[0] || "Failed to save tags",
               );
             }
           } catch (error: any) {
@@ -493,7 +514,7 @@ const EditTask = () => {
             const oldFile = new File(
               [oldBlob],
               `${entry.oldFileName}${entry.oldExtension}`,
-              { type: "text/plain" }
+              { type: "text/plain" },
             );
             formData.append(`${prefix}_oldFile`, oldFile);
           }
@@ -504,7 +525,7 @@ const EditTask = () => {
             const newFile = new File(
               [newBlob],
               `${entry.newFileName}${entry.newExtension}`,
-              { type: "text/plain" }
+              { type: "text/plain" },
             );
             formData.append(`${prefix}_newFile`, newFile);
           }
@@ -518,7 +539,7 @@ const EditTask = () => {
         formData.append(`${prefix}_type`, entry.type ?? "");
         formData.append(
           `${prefix}_isNew`,
-          entry.taskCodeChangeId ? "false" : "true"
+          entry.taskCodeChangeId ? "false" : "true",
         );
       });
     });
@@ -534,7 +555,7 @@ const EditTask = () => {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
 
       if (response.data.result.succeeded) {
@@ -550,11 +571,11 @@ const EditTask = () => {
   const handleDownloadFile = async (
     taskCodeChangeId?: string,
     fileName?: string,
-    fileType?: string
+    fileType?: string,
   ) => {
     try {
       const isDownload = window.confirm(
-        `Do you want to download the file "${fileName}"?\nClick "Cancel" to just view it.`
+        `Do you want to download the file "${fileName}"?\nClick "Cancel" to just view it.`,
       );
 
       const response = await axios.get(
@@ -566,7 +587,7 @@ const EditTask = () => {
             fileName,
             fileType,
           },
-        }
+        },
       );
 
       const blob = new Blob([response.data], {
@@ -598,7 +619,7 @@ const EditTask = () => {
   return (
     <Layout>
       <div className="d-flex align-items-center gap-3 mb-4">
-        <button 
+        <button
           onClick={handleBack}
           className="btn btn-light btn-icon shadow-sm border transition-base hover-scale"
           title="Back"
@@ -608,7 +629,9 @@ const EditTask = () => {
         </button>
         <div>
           <h2 className="mb-1 fw-bold text-dark">Edit Task</h2>
-          <p className="text-muted mb-0">Update task details, assignees, attachments, and code changes.</p>
+          <p className="text-muted mb-0">
+            Update task details, assignees, attachments, and code changes.
+          </p>
         </div>
       </div>
 
@@ -630,7 +653,7 @@ const EditTask = () => {
                   disabled={userRole == "USER" ? true : false}
                 />
               </div>
-              <div className="col-md-5">
+              <div className="col-md-10">
                 <label className="form-label fw-bold">Title</label>
                 <input
                   type="text"
@@ -640,7 +663,7 @@ const EditTask = () => {
                   onChange={handleInputChange}
                 />
               </div>
-              <div className="col-md-5">
+              {/* <div className="col-md-5" >
                 <label className="form-label fw-bold">Description</label>
                 <input
                   type="text"
@@ -649,11 +672,27 @@ const EditTask = () => {
                   value={formData.description}
                   onChange={handleInputChange}
                 />
+              </div> */}
+            </div>
+
+            <div className="row g-4 mb-4">
+              <div className="col-md-12">
+                <label className="form-label fw-medium text-dark small mb-1">
+                  Description
+                </label>
+                <textarea
+                  className="form-control  px-3 py-2"
+                  name="description"
+                  placeholder="Detailed description of the task"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  rows={3}
+                />
               </div>
             </div>
 
             <div className="row g-3 mb-3">
-              <div className="col-md-3">
+              <div className="col-md-2">
                 <label className="form-label fw-bold">Estimated Hours</label>
                 <input
                   type="number"
@@ -700,16 +739,31 @@ const EditTask = () => {
                   ))}
                 </select>
               </div>
-              <div className="col-md-3">
-                <label className="form-label fw-bold">Due Date</label>
-                <input
-                  type="datetime-local"
-                  className="form-control"
-                  name="dueDate"
-                  value={formData.dueDate || ""}
-                  onChange={handleInputChange}
-                  disabled={userRole == "USER" ? true : false}
-                />
+              <div className="col-md-4">
+                <div className="row">
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold">Task Date</label>
+                    <input
+                      type="datetime-local"
+                      className="form-control"
+                      name="taskDate"
+                      value={formData.taskDate || ""}
+                      onChange={handleInputChange}
+                      disabled={userRole == "USER" ? true : false}
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold">Due Date</label>
+                    <input
+                      type="datetime-local"
+                      className="form-control"
+                      name="dueDate"
+                      value={formData.dueDate || ""}
+                      onChange={handleInputChange}
+                      disabled={userRole == "USER" ? true : false}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -806,7 +860,7 @@ const EditTask = () => {
                   </option>
                   {users.map((u) => {
                     const isAssigned = assignedUsers.some(
-                      (assigned) => assigned.userId === u.userId
+                      (assigned) => assigned.userId === u.userId,
                     );
 
                     const isUserRole =
@@ -874,12 +928,12 @@ const EditTask = () => {
                     if (!selectedTagId) return;
 
                     const selectedTag = tags.find(
-                      (tag) => tag.tagId === selectedTagId
+                      (tag) => tag.tagId === selectedTagId,
                     );
                     if (
                       selectedTag &&
                       !assignedTags.some(
-                        (tag) => tag.tagId === selectedTag.tagId
+                        (tag) => tag.tagId === selectedTag.tagId,
                       )
                     ) {
                       setAssignedTags([...assignedTags, selectedTag]);
@@ -887,7 +941,10 @@ const EditTask = () => {
 
                     e.target.value = "";
                   }}
-                  disabled={formData.status === "COMPLETED"&&formData.isActive===false}
+                  disabled={
+                    formData.status === "COMPLETED" &&
+                    formData.isActive === false
+                  }
                 >
                   <option value="">Select Tag</option>
                   {tags.map((mod) => (
@@ -895,7 +952,7 @@ const EditTask = () => {
                       key={mod.tagId}
                       value={mod.tagId}
                       disabled={assignedTags.some(
-                        (tag) => tag.tagId === mod.tagId
+                        (tag) => tag.tagId === mod.tagId,
                       )}
                     >
                       {mod.tagName}
@@ -903,109 +960,116 @@ const EditTask = () => {
                   ))}
                 </select>
               </div>
-
-              {assignedTags.length > 0 && (
-                <div className="col-md-3">
-                  <label className="form-label fw-bold">Assigned Tags</label>
-                  <div
-                    className="form-control d-flex flex-wrap gap-1"
-                    style={{ minHeight: "40px" }}
-                  >
-                    {assignedTags.map((tag) => (
-                      <span
-                        key={tag.tagId}
-                        className="badge bg-primary d-flex align-items-center"
-                        style={{ fontSize: "0.85rem", cursor: "pointer" }}
-                        onClick={() => {
-                          setAssignedTags(
-                            assignedTags.filter((t) => t.tagId !== tag.tagId)
-                          );
-                        }}
-                      >
-                        {tag.tagName} <span className="ms-1">✖</span>
-                      </span>
-                    ))}
+              <div className="col-md-3">
+                {assignedTags.length > 0 && (
+                  <div className="col-md-12">
+                    <label className="form-label fw-bold">Assigned Tags</label>
+                    <div
+                      className="form-control d-flex flex-wrap gap-1"
+                      style={{ minHeight: "40px" }}
+                    >
+                      {assignedTags.map((tag) => (
+                        <span
+                          key={tag.tagId}
+                          className="badge bg-primary d-flex align-items-center"
+                          style={{ fontSize: "0.85rem", cursor: "pointer" }}
+                          onClick={() => {
+                            setAssignedTags(
+                              assignedTags.filter((t) => t.tagId !== tag.tagId),
+                            );
+                          }}
+                        >
+                          {tag.tagName} <span className="ms-1">✖</span>
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+              <div className="col-md-3">
+                {assignedTags.length > 0 && (
+                  <div className="row mt-3">
+                    <div className="col-md-12 d-flex justify-content-start align-items-center gap-2">
+                      <label
+                        htmlFor="uploadCodeCheckbox"
+                        className="form-label fw-bold mt-2"
+                        style={{ cursor: "pointer" }}
+                      >
+                        Upload Code Changes (required for tagged tasks)
+                      </label>
+                      <input
+                        type="checkbox"
+                        name="uploadCodeCheckbox"
+                        id="uploadCodeCheckbox"
+                        className="form-check-input"
+                        style={{
+                          width: "24px",
+                          height: "24px",
+                          cursor: "pointer",
+                          border: "2px solid #b9b9b9ff",
+                          borderRadius: "4px",
+                        }}
+                        checked={requireCodeUpload}
+                        onChange={(e) => setRequireCodeUpload(e.target.checked)}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="col-md-3">
+                {formData?.status === "COMPLETED" && (
+                  <div className="row mt-3">
+                    <div className="col-md-12 d-flex justify-content-start align-items-center gap-2">
+                      <label
+                        htmlFor="completeRequest"
+                        className="form-label fw-bold mt-2"
+                        style={{ cursor: "pointer" }}
+                      >
+                        Send Completed Task Request to Admin
+                      </label>
+                      <input
+                        type="checkbox"
+                        name="completeRequest"
+                        id="completeRequest"
+                        className="form-check-input"
+                        style={{
+                          width: "24px",
+                          height: "24px",
+                          cursor: "pointer",
+                          border: "2px solid #b9b9b9ff",
+                          borderRadius: "4px",
+                        }}
+                        checked={isCompletedRequest}
+                        onChange={(e) =>
+                          setIsCompletedRequest(e.target.checked)
+                        }
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-            {assignedTags.length > 0 && (
-              <div className="row mt-3">
-                <div className="col-md-3 d-flex justify-content-center align-items-center gap-2">
-                  <label
-                    htmlFor="uploadCodeCheckbox"
-                    className="form-label fw-bold mt-2"
-                    style={{ cursor: "pointer" }}
-                  >
-                    Upload Code Changes (required for tagged tasks)
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="uploadCodeCheckbox"
-                    id="uploadCodeCheckbox"
-                    className="form-check-input"
-                    style={{
-                      width: "24px",
-                      height: "24px",
-                      cursor: "pointer",
-                      border: "2px solid #b9b9b9ff",
-                      borderRadius: "4px",
-                    }}
-                    checked={requireCodeUpload}
-                    onChange={(e) => setRequireCodeUpload(e.target.checked)}
-                  />
-                </div>
-              </div>
-            )}
-            {formData?.status === "COMPLETED" && (
-              <div className="row mt-3">
-                <div className="col-md-3 d-flex justify-content-center align-items-center gap-2">
-                  <label
-                    htmlFor="completeRequest"
-                    className="form-label fw-bold mt-2"
-                    style={{ cursor: "pointer" }}
-                  >
-                    Send Completed Task Request to Admin
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="completeRequest"
-                    id="completeRequest"
-                    className="form-check-input"
-                    style={{
-                      width: "24px",
-                      height: "24px",
-                      cursor: "pointer",
-                      border: "2px solid #b9b9b9ff",
-                      borderRadius: "4px",
-                    }}
-                    checked={isCompletedRequest}
-                    onChange={(e) => setIsCompletedRequest(e.target.checked)}
-                  />
-                </div>
-              </div>
-            )}
 
-            <div className="d-flex justify-content-end gap-3 pt-4 border-top">
-               <button 
-                 type="submit" 
-                 className="btn btn-primary px-4 fw-medium shadow-sm transition-base d-flex align-items-center gap-2"
-               >
-                 <i className="bi bi-check2"></i>
-                 Update Task
-               </button>
+            <div className="d-flex justify-content-end gap-3 mt-5 pt-4 border-top">
+              <button
+                type="submit"
+                className="btn btn-primary px-4 fw-medium shadow-sm transition-base d-flex align-items-center gap-2"
+              >
+                <i className="bi bi-check2"></i>
+                Update Task
+              </button>
             </div>
           </form>
         </div>
       </div>
 
-        {requireCodeUpload && (
-          <div className="card border-0 shadow-sm rounded-lg overflow-hidden">
-            <div className="card-header bg-white border-bottom px-4 py-3 d-flex justify-content-between align-items-center">
-              <h5 className="mb-0 fw-semibold text-dark">Code Changes</h5>
-            </div>
-            <div className="card-body p-4 p-md-5">
-              <form onSubmit={handleSubmitCodeChanings}>
+      {requireCodeUpload && (
+        <div className="card border-0 shadow-sm rounded-lg overflow-hidden">
+          <div className="card-header bg-white border-bottom px-4 py-3 d-flex justify-content-between align-items-center">
+            <h5 className="mb-0 fw-semibold text-dark">Code Changes</h5>
+          </div>
+          <div className="card-body p-4 p-md-5">
+            <form onSubmit={handleSubmitCodeChanings}>
               {assignedTags.map((tag) => (
                 <div key={tag.tagId} className="mb-4">
                   <div
@@ -1034,7 +1098,7 @@ const EditTask = () => {
                         onClick={async () => {
                           if (
                             window.confirm(
-                              "Are you sure you want to delete this code change file?"
+                              "Are you sure you want to delete this code change file?",
                             )
                           ) {
                             const updatedInputs = [
@@ -1051,7 +1115,7 @@ const EditTask = () => {
                                       taskCodeChangeId:
                                         deletedRow.taskCodeChangeId,
                                     },
-                                  }
+                                  },
                                 );
                                 if (response.data.result.succeeded) {
                                   ShowMessage(1, "Row deleted successfully.");
@@ -1128,7 +1192,9 @@ const EditTask = () => {
                                 <input
                                   type="file"
                                   className="form-control"
-                                   disabled={!!(input.oldFileName && input.oldExtension)}
+                                  disabled={
+                                    !!(input.oldFileName && input.oldExtension)
+                                  }
                                   onChange={(e) => {
                                     const oldFile = e.target.files?.[0] || null;
                                     const updatedInputs = [
@@ -1150,8 +1216,8 @@ const EditTask = () => {
                                   {input.oldFile
                                     ? input.oldFile.name
                                     : input.oldFileName && input.oldExtension
-                                    ? `${input.oldFileName}${input.oldExtension}`
-                                    : "No file selected"}
+                                      ? `${input.oldFileName}${input.oldExtension}`
+                                      : "No file selected"}
                                 </label>
                               </div>
 
@@ -1166,7 +1232,7 @@ const EditTask = () => {
                                       handleDownloadFile(
                                         input.taskCodeChangeId,
                                         `${input.oldFileName}${input.oldExtension}`,
-                                        "OLD"
+                                        "OLD",
                                       )
                                     }
                                   >
@@ -1178,34 +1244,36 @@ const EditTask = () => {
                             <div className="col-md-6">
                               <label className="form-label">New File</label>
                               <div className="custom-file">
-                              <input
-                                type="file"
-                                className="form-control"
-                                 disabled={!!(input.newFileName && input.newExtension)}
-                                onChange={(e) => {
-                                  const newFile = e.target.files?.[0] || null;
-                                  const updatedInputs = [
-                                    ...(codeInputs[tag.tagId] || []),
-                                  ];
-                                  updatedInputs[idx] = {
-                                    ...updatedInputs[idx],
-                                    newFile,
-                                  };
-                                  setCodeInputs((prev) => ({
-                                    ...prev,
-                                    [tag.tagId]: updatedInputs,
-                                  }));
-                                }}
-                              />
+                                <input
+                                  type="file"
+                                  className="form-control"
+                                  disabled={
+                                    !!(input.newFileName && input.newExtension)
+                                  }
+                                  onChange={(e) => {
+                                    const newFile = e.target.files?.[0] || null;
+                                    const updatedInputs = [
+                                      ...(codeInputs[tag.tagId] || []),
+                                    ];
+                                    updatedInputs[idx] = {
+                                      ...updatedInputs[idx],
+                                      newFile,
+                                    };
+                                    setCodeInputs((prev) => ({
+                                      ...prev,
+                                      [tag.tagId]: updatedInputs,
+                                    }));
+                                  }}
+                                />
                                 <label className="form-text text-muted mt-1">
                                   {input.newFile
                                     ? input.newFile.name
                                     : input.newFileName && input.newExtension
-                                    ? `${input.newFileName}${input.newExtension}`
-                                    : "No file selected"}
+                                      ? `${input.newFileName}${input.newExtension}`
+                                      : "No file selected"}
                                 </label>
                               </div>
-                            
+
                               {input.newFileName &&
                                 input.newExtension &&
                                 input.taskCodeChangeId && (
@@ -1216,7 +1284,7 @@ const EditTask = () => {
                                       handleDownloadFile(
                                         input.taskCodeChangeId,
                                         `${input.newFileName}${input.newExtension}`,
-                                        "NEW"
+                                        "NEW",
                                       )
                                     }
                                   >
@@ -1354,7 +1422,7 @@ const EditTask = () => {
                                         [input.oldCode as string],
                                         {
                                           type: "text/plain",
-                                        }
+                                        },
                                       );
                                       const link = document.createElement("a");
                                       link.href = URL.createObjectURL(blob);
@@ -1377,7 +1445,7 @@ const EditTask = () => {
                                       handleDownloadFile(
                                         input.taskCodeChangeId,
                                         `${input.oldFileName}${input.oldExtension}`,
-                                        "OLD"
+                                        "OLD",
                                       )
                                     }
                                   >
@@ -1474,7 +1542,7 @@ const EditTask = () => {
                                         [input.newCode as string],
                                         {
                                           type: "text/plain",
-                                        }
+                                        },
                                       );
                                       const link = document.createElement("a");
                                       link.href = URL.createObjectURL(blob);
@@ -1496,7 +1564,7 @@ const EditTask = () => {
                                       handleDownloadFile(
                                         input.taskCodeChangeId,
                                         `${input.newFileName}${input.newExtension}`,
-                                        "NEW"
+                                        "NEW",
                                       )
                                     }
                                   >
@@ -1531,18 +1599,18 @@ const EditTask = () => {
                 </div>
               ))}
               <div className="d-flex justify-content-end gap-3 pt-4 border-top">
-                 <button 
-                   type="submit" 
-                   className="btn btn-primary px-4 fw-medium shadow-sm transition-base d-flex align-items-center gap-2"
-                 >
-                   <i className="bi bi-cloud-upload"></i>
-                   Save Code Changes
-                 </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary px-4 fw-medium shadow-sm transition-base d-flex align-items-center gap-2"
+                >
+                  <i className="bi bi-cloud-upload"></i>
+                  Save Code Changes
+                </button>
               </div>
             </form>
           </div>
         </div>
-        )}
+      )}
     </Layout>
   );
 };

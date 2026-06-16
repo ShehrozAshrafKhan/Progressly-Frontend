@@ -359,7 +359,7 @@ useEffect(() => {
                 ) : (
                   paginatedTasks.map((item, index) => (
                     <tr key={item.taskId || index} className="transition-base">
-                      <td className="px-4 py-3 fw-medium text-dark">{item.taskNo}</td>
+                      <td className="px-4 py-3 fw-medium text-dark">{item.taskNo|| '-'}</td>
                       <td className="px-4 py-3">
                          <div className="fw-medium text-dark">{item.title}</div>
                          <div className="small text-muted text-truncate" style={{ maxWidth: "200px" }}>{item.description}</div>
