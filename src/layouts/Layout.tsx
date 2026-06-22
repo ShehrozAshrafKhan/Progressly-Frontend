@@ -5,6 +5,8 @@ import Cookies from "js-cookie";
 import ProfileMenu from "../Components/Common/NavBar/ProfileMenu";
 import logo50 from "../assets/logo50.png";
 import { Link } from "react-router-dom";
+import axios from "axios";
+import config from "../config";
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -18,10 +20,24 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     console.log("Settings clicked");
   };
 
-  const handleLogout = () => {
-    clearUser();
-    Cookies.remove("token");
-    window.location.href = "/";
+  const handleLogout = async () => {
+    try {
+      const refreshToken = Cookies.get("refreshToken") || localStorage.getItem("refreshToken");
+      if (refreshToken) {
+        await axios.post(`${config.baseUrl}Auth/revoke-token`, JSON.stringify(refreshToken), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    } catch (e) {
+      console.error("Failed to revoke token on logout", e);
+    } finally {
+      clearUser();
+      Cookies.remove("token");
+      Cookies.remove("refreshToken");
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      window.location.href = "/";
+    }
   };
 
   return (
@@ -75,6 +91,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <style>{`
         .main-content {
           height: calc(100vh - 60px); /* 60px is approx navbar height */
+          min-width: 0;
+          overflow-x: hidden;
         }
 
         /* Large screens */

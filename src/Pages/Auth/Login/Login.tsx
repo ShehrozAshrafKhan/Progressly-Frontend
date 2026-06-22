@@ -42,6 +42,11 @@ const Login = () => {
         const token = response.data.data.token;
         if (token) {
           Cookies.set("token", token, { expires: 1 });
+          const refreshToken = response.data.data.refreshToken;
+          if (refreshToken) {
+            Cookies.set("refreshToken", refreshToken, { expires: 7 });
+            localStorage.setItem("refreshToken", refreshToken);
+          }
           axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
           const data = response.data.data;
 

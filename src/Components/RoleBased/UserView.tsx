@@ -34,9 +34,10 @@ const UserView = () => {
     { key: "TotalTasks", title: "Total Tasks", icon: "bi-list-task", color: "primary", route: "ALL" },
     { key: "MyTasks", title: "My Tasks", icon: "bi-person-badge", color: "secondary", route: "MYTASK" },
     { key: "ActiveTasks", title: "Active Tasks", icon: "bi-lightning", color: "warning", route: "ACTIVE" },
-    { key: "CompletedTasks", title: "Completed Tasks", icon: "bi-check-circle", color: "success", route: "COMPLETED" },
-    { key: "OverdueTasks", title: "Overdue Tasks", icon: "bi-exclamation-octagon", color: "danger", route: "OVERDUE" },
     { key: "UpcomingDeadlines", title: "Upcoming Deadlines", icon: "bi-calendar-event", color: "info", route: "UPCOMING" },
+    { key: "OverdueTasks", title: "Overdue Tasks", icon: "bi-exclamation-octagon", color: "danger", route: "OVERDUE" },
+    { key: "CompletedTasks", title: "Tasks Marked as Completed", icon: "bi-check2-all", color: "primary", route: "COMPLETED" },
+    { key: "Closed", title: "Completed & Closed Tasks", icon: "bi-check-circle-fill", color: "success", route: "CLOSED" },
   ];
 
   return (
@@ -48,7 +49,7 @@ const UserView = () => {
 
       <div className="row g-4 mb-4">
         {cards.map((card, idx) => (
-          <div className="col-md-6 col-xl-4" key={idx}>
+          <div className="col-md-3 col-xl-3" key={idx}>
             <div 
               className="card border-0 shadow-sm rounded-lg h-100 card-hover"
               onClick={() => navigate(`/tasks/userTasksDetail/${card.route}`)}
