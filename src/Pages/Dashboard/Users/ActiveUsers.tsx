@@ -11,16 +11,16 @@ type User = {
   isActive: boolean;
   role:string;
 };
-const Users = () => {
+const ActiveUsers = () => {
   const [tblData, setTblData] = useState<User[]>([]);
 
   useEffect(() => {
-    handleGetAllUsers();
+    handleGetAllActiveUsers();
   }, []);
 
-  const handleGetAllUsers = async () => {
+  const handleGetAllActiveUsers = async () => {
     try {
-      const url = `${config.baseUrl}Auth/GetAllUsers`;
+      const url = `${config.baseUrl}Auth/GetAllActiveUsers`;
       const response = await axios.get(url);
 
       if (
@@ -87,7 +87,7 @@ const handleSubmit = async (updatedObj: any) => {
 
   return (
     <Layout>
-      <h1> Users</h1>
+      <h1>Active Users</h1>
        {/* <div className="d-grid gap-2 d-md-flex justify-content-md-end mb-2">
           <button className="btn btn-primary me-md-2" type="button" onClick={handleAddNewProject}>
             Add New
@@ -135,4 +135,4 @@ const handleSubmit = async (updatedObj: any) => {
   );
 };
 
-export default Users;
+export default ActiveUsers;

@@ -145,3 +145,126 @@ body {
 .shadow {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
 }
+
+/* ============================================
+   Chart Cards & Dashboard Chart Styles
+   ============================================ */
+
+.chart-card {
+  background: #ffffff;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.875rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  overflow: hidden;
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.chart-card:hover {
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.12);
+  transform: translateY(-2px);
+}
+
+.chart-card-header {
+  padding: 1.1rem 1.4rem 0.6rem;
+  border-bottom: 1px solid var(--bs-border-color);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chart-card-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.chart-card-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--bs-dark);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.chart-card-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.chart-card-body {
+  padding: 1rem 0.5rem 0.75rem;
+}
+
+/* Custom Recharts tooltip */
+.custom-recharts-tooltip {
+  background: rgba(17, 24, 39, 0.9);
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.8rem;
+  font-family: var(--bs-font-sans-serif);
+  border: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.custom-recharts-tooltip .label {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+/* Legend */
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.2rem;
+  justify-content: center;
+  padding: 0 1rem 0.75rem;
+}
+
+.chart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.chart-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Dashboard section heading */
+.dashboard-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--bs-dark);
+  letter-spacing: -0.02em;
+  margin-bottom: 0.25rem;
+}
+
+.dashboard-section-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Loading spinner for charts */
+.chart-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 240px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  gap: 0.5rem;
+}
+

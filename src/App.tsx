@@ -103,6 +103,7 @@ import UpdateProfile from "./Pages/Users/UpdateProfile";
 import Unauthorized from "./Pages/Auth/Unauthorized/Unauthorized";
 import UserTasksDetail from "./Pages/Task/UserTasksDetail";
 import EditTask from "./Pages/Task/EditTask";
+import ActiveUsers from "./Pages/Dashboard/Users/ActiveUsers";
 import Users from "./Pages/Dashboard/Users/Users";
 import PendingApprovals from "./Pages/Task/PendingApprovals";
 import CompletedTasks from "./Pages/Task/CompletedTasks";
@@ -111,6 +112,8 @@ import UserWiseTasks from "./Pages/Reports/Tasks/UserWiseTasks/UserWiseTasks";
 import DateWiseTasks from "./Pages/Reports/Tasks/DateWiseTasks/DateWiseTasks";
 import WeeklySummaryReport from "./Pages/Reports/Tasks/WeeklySummaryReport/WeeklySummaryReport";
 import ChangeLogo from "./Pages/Settings/ChangeLogo";
+import UpcomingDeadlines from "./Pages/Task/UpcomingDeadlines";
+import OverdueTasks from "./Pages/Task/OverdueTasks";
 
 const App = () => {
   return (
@@ -129,7 +132,8 @@ const App = () => {
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/users/getAllActiveUsers" element={<Users />} />
+        <Route path="/users/getAllActiveUsers" element={<ActiveUsers />} />
+        <Route path="/users/getAllUsers" element={<Users />} />
 
 
         <Route path="/admin/projects" element={<Projects />} />
@@ -158,6 +162,8 @@ const App = () => {
         <Route path="/admin/tasks/pendingApprovals" element={<PendingApprovals />} />
         <Route path="/tasks/completedTasks" element={<CompletedTasks />} />
         <Route path="/tasks/pendingTasks" element={<PendingTasks />} />
+        <Route path="/tasks/upcomingDeadlines" element={<UpcomingDeadlines />} />
+        <Route path="/tasks/overdueTasks" element={<OverdueTasks />} />
      
      
      
