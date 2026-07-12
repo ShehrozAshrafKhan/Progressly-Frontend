@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ShowMessage } from "../../Components/Common/ShowMessage";
 import config from "../../config";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import Layout from "../../layouts/Layout";
 
 type TaskAttachment = {
@@ -35,7 +35,7 @@ type Task = {
 };
 
 const DeletedTasks = () => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [tblData, setTblData] = useState<Task[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedAttachment, setSelectedAttachment] =
@@ -46,9 +46,9 @@ const DeletedTasks = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
 
-  const userString = localStorage.getItem("user");
-  const user = userString ? JSON.parse(userString) : null;
-  const userRole = user?.roles?.[0] || "";
+  // const userString = localStorage.getItem("user");
+  // const user = userString ? JSON.parse(userString) : null;
+  // const userRole = user?.roles?.[0] || "";
 
   useEffect(() => {
     handleGetTasks();
@@ -69,49 +69,49 @@ const DeletedTasks = () => {
         console.log(response.data.data);
       } else {
         console.log(response.data.data);
-        ShowMessage(2, "No data found.");
+        // ShowMessage(2, "No data found.");
       }
     } catch (e: any) {
       ShowMessage(2, e.message || "Something went wrong while fetching Tasks.");
     }
   };
 
-  const handleAddNewTask = () => {
-    navigate("/tasks/addNewTask");
-  };
+  // const handleAddNewTask = () => {
+  //   navigate("/tasks/addNewTask");
+  // };
 
-  const handleEdit = (taskId: string) => {
-    navigate(`/tasks/editTask/${taskId}`);
-  };
+  // const handleEdit = (taskId: string) => {
+  //   navigate(`/tasks/editTask/${taskId}`);
+  // };
 
-  const handleInputChange = (taskId: string) => {
-    const updatedData = tblData.map((item) =>
-      item.taskId === taskId ? { ...item, isActive: !item.isActive } : item
-    );
-    setTblData(updatedData);
-    const updatedObj = updatedData.find((x) => x.taskId === taskId);
-    handleSubmit(updatedObj);
-  };
+  // const handleInputChange = (taskId: string) => {
+  //   const updatedData = tblData.map((item) =>
+  //     item.taskId === taskId ? { ...item, isActive: !item.isActive } : item
+  //   );
+  //   setTblData(updatedData);
+  //   const updatedObj = updatedData.find((x) => x.taskId === taskId);
+  //   handleSubmit(updatedObj);
+  // };
 
-  const handleSubmit = async (updatedObj: any) => {
-    try {
-      console.log(updatedObj);
-      const url = `${config.baseUrl}Tasks/UpdateTask`;
-      const response = await axios.patch(url, updatedObj);
-      if (
-        response.data.result.succeeded === false &&
-        response.data.result.errors.length > 0
-      ) {
-        ShowMessage(2, response.data.result.errors[0]);
-      } else if (response.data.result.succeeded === true) {
-        ShowMessage(1, "Status Updated Successfully");
-      } else {
-        ShowMessage(2, "Something went wrong while saving");
-      }
-    } catch (err: any) {
-      ShowMessage(2, err.message || "Something went wrong while saving");
-    }
-  };
+  // const handleSubmit = async (updatedObj: any) => {
+  //   try {
+  //     console.log(updatedObj);
+  //     const url = `${config.baseUrl}Tasks/UpdateTask`;
+  //     const response = await axios.patch(url, updatedObj);
+  //     if (
+  //       response.data.result.succeeded === false &&
+  //       response.data.result.errors.length > 0
+  //     ) {
+  //       ShowMessage(2, response.data.result.errors[0]);
+  //     } else if (response.data.result.succeeded === true) {
+  //       ShowMessage(1, "Status Updated Successfully");
+  //     } else {
+  //       ShowMessage(2, "Something went wrong while saving");
+  //     }
+  //   } catch (err: any) {
+  //     ShowMessage(2, err.message || "Something went wrong while saving");
+  //   }
+  // };
 
   const handleUndoTask = async (taskId: string) => {
     if (!window.confirm("Are you sure you want to restore this task?")) return;
