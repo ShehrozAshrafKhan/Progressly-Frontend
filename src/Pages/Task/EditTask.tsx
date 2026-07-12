@@ -67,6 +67,40 @@ const EditTask = () => {
   const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [existingFileName, setExistingFileName] = useState<string>("");
+  const [existingFileUrl, setExistingFileUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchExistingFile = async () => {
+      if (taskAttachments && taskAttachments.length > 0 && existingFileName) {
+        const attachment = taskAttachments[0];
+        const isImage =
+          attachment.fileName.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null;
+        if (isImage) {
+          try {
+            const url = `${config.baseUrl}TaskAttachments/GetTaskAttachmentFile?taskAttachmentId=${attachment.taskAttachmentId}`;
+            const response = await axios.get(url, {
+              responseType: "arraybuffer",
+            });
+
+            const ext = attachment.fileName.split(".").pop()?.toLowerCase();
+            let mime = "image/jpeg";
+            if (ext === "png") mime = "image/png";
+            else if (ext === "gif") mime = "image/gif";
+            else if (ext === "webp") mime = "image/webp";
+
+            const blob = new Blob([response.data], { type: mime });
+            setExistingFileUrl(URL.createObjectURL(blob));
+          } catch (e) {
+            console.error("Failed to load existing image preview");
+          }
+        }
+      } else {
+        setExistingFileUrl(null);
+      }
+    };
+    fetchExistingFile();
+  }, [taskAttachments, existingFileName]);
+
   const [requireCodeUpload, setRequireCodeUpload] = useState(false);
   const status = ["PENDING", "IN_PROGRESS", "COMPLETED"];
   const priority = ["LOW", "MEDIUM", "HIGH"];
@@ -129,26 +163,27 @@ const EditTask = () => {
       );
 
       const grouped: Record<string, CodeInputType[]> = {};
+      if (res.data.data != null && res.data.data.length > 0) {
+        for (const change of res.data.data) {
+          const tagId = change.tagId;
+          if (!grouped[tagId]) grouped[tagId] = [];
 
-      for (const change of res.data.data) {
-        const tagId = change.tagId;
-        if (!grouped[tagId]) grouped[tagId] = [];
-
-        grouped[tagId].push({
-          taskCodeChangeId: change.taskCodeChangeId,
-          type: change.entryType,
-          oldFileName: change.oldFileName,
-          oldExtension: change.oldExtension,
-          newFileName: change.newFileName,
-          newExtension: change.newExtension,
-          oldFilePath: change.oldFilePath,
-          newFilePath: change.newFilePath,
-          showOld: true,
-          showNew: true,
-        });
+          grouped[tagId].push({
+            taskCodeChangeId: change.taskCodeChangeId,
+            type: change.entryType,
+            oldFileName: change.oldFileName,
+            oldExtension: change.oldExtension,
+            newFileName: change.newFileName,
+            newExtension: change.newExtension,
+            oldFilePath: change.oldFilePath,
+            newFilePath: change.newFilePath,
+            showOld: true,
+            showNew: true,
+          });
+        }
+        console.log(grouped);
+        setCodeInputs(grouped);
       }
-      console.log(grouped);
-      setCodeInputs(grouped);
     } catch (err) {
       console.error("Failed to load uploaded files", err);
     }
@@ -339,6 +374,60 @@ const EditTask = () => {
     setExistingFileName("");
   };
 
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const droppedFile = e.dataTransfer.files[0];
+      setFile(droppedFile);
+      setExistingFileName("");
+      if (fileInputRef.current) {
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(droppedFile);
+        fileInputRef.current.files = dataTransfer.files;
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf("image") !== -1) {
+          const blob = items[i].getAsFile();
+          if (blob) {
+            setFile(blob);
+            setExistingFileName("");
+            if (fileInputRef.current) {
+              const dataTransfer = new DataTransfer();
+              dataTransfer.items.add(blob);
+              fileInputRef.current.files = dataTransfer.files;
+            }
+            // @ts-ignore
+            ShowMessage(1, "Image pasted successfully");
+          }
+        }
+      }
+    };
+    document.addEventListener("paste", handlePaste);
+    return () => {
+      document.removeEventListener("paste", handlePaste);
+    };
+  }, []);
+
   const handleClear = () => {
     setFormData({
       title: "",
@@ -377,9 +466,7 @@ const EditTask = () => {
         ShowMessage(1, "Task added successfully");
 
         const existingAttachmentId =
-          taskAttachments.length > 0
-            ? taskAttachments[0].taskAttachmentId
-            : "";
+          taskAttachments.length > 0 ? taskAttachments[0].taskAttachmentId : "";
         if (file && existingAttachmentId) {
           const formDataFile = new FormData();
           formDataFile.append("File", file);
@@ -398,8 +485,7 @@ const EditTask = () => {
           } else {
             ShowMessage(2, "Task saved, but file upload failed");
           }
-        }
-        else if (file && existingAttachmentId=='') {
+        } else if (file && existingAttachmentId == "") {
           const formDataFile = new FormData();
           formDataFile.append("File", file);
           formDataFile.append("taskId", taskId);
@@ -423,12 +509,12 @@ const EditTask = () => {
           };
           await axios.patch(assignUrl, assignBody);
         }
-        if (isCompletedRequest && taskId) {
+        if (taskId) {
           try {
             const completeUrl = `${config.baseUrl}Tasks/UpdateTaskStatus`;
             const completeBody = {
               taskId,
-              isCompletedRequest: true,
+              isCompletedRequest: isCompletedRequest,
             };
 
             const completeResponse = await axios.patch(
@@ -676,7 +762,7 @@ const EditTask = () => {
             </div>
 
             <div className="row g-4 mb-4">
-              <div className="col-md-12">
+              <div className="col-md-9">
                 <label className="form-label fw-medium text-dark small mb-1">
                   Description
                 </label>
@@ -689,10 +775,117 @@ const EditTask = () => {
                   rows={3}
                 />
               </div>
+              <div className="col-md-3">
+                <label className="form-label fw-bold">Attachment</label>
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{
+                    border: isDragging
+                      ? "2px dashed #0d6efd"
+                      : "2px dashed #ced4da",
+                    borderRadius: "8px",
+                    padding: file || existingFileName ? "10px" : "20px",
+                    textAlign: "center",
+                    cursor: "pointer",
+                    backgroundColor: isDragging ? "#f8f9fa" : "#ffffff",
+                    transition: "all 0.3s ease",
+                    position: "relative",
+                  }}
+                >
+                  <input
+                    type="file"
+                    style={{ display: "none" }}
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                  />
+                  {file ? (
+                    <div className="d-flex flex-column align-items-center">
+                      {file.type.startsWith("image/") ? (
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt="preview"
+                          style={{
+                            maxHeight: "80px",
+                            maxWidth: "100%",
+                            borderRadius: "8px",
+                            objectFit: "contain",
+                            marginBottom: "5px",
+                          }}
+                        />
+                      ) : (
+                        <div style={{ fontSize: "30px", marginBottom: "5px" }}>
+                          <i className="bi bi-file-earmark-text"></i>
+                        </div>
+                      )}
+                      <span className="text-muted small text-truncate w-100 px-2">
+                        {file.name}
+                      </span>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-danger mt-2 py-0 px-2"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFile(null);
+                          if (fileInputRef.current)
+                            fileInputRef.current.value = "";
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : existingFileName ? (
+                    <div className="d-flex flex-column align-items-center">
+                      {existingFileUrl ? (
+                        <img
+                          src={existingFileUrl}
+                          alt="preview"
+                          style={{
+                            maxHeight: "80px",
+                            maxWidth: "100%",
+                            borderRadius: "8px",
+                            objectFit: "contain",
+                            marginBottom: "5px",
+                          }}
+                        />
+                      ) : (
+                        <div style={{ fontSize: "30px", marginBottom: "5px" }}>
+                          <i className="bi bi-file-earmark-check"></i>
+                        </div>
+                      )}
+                      <span className="text-muted small text-truncate w-100 px-2">
+                        {existingFileName}
+                      </span>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-secondary mt-2 py-0 px-2"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (fileInputRef.current) {
+                            fileInputRef.current.click();
+                          }
+                        }}
+                      >
+                        Change File
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-muted">
+                      <i
+                        className="bi bi-cloud-arrow-up"
+                        style={{ fontSize: "24px" }}
+                      ></i>
+                      <p className="mb-0 mt-1 small">Drag & drop or click</p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="row g-3 mb-3">
-              <div className="col-md-2">
+              <div className="col-md-3">
                 <label className="form-label fw-bold">Estimated Hours</label>
                 <input
                   type="number"
@@ -703,24 +896,7 @@ const EditTask = () => {
                   disabled={userRole == "USER" ? true : false}
                 />
               </div>
-              <div className="col-md-3">
-                <label className="form-label fw-bold">Status</label>
-                <select
-                  name="status"
-                  className="form-select"
-                  value={formData.status}
-                  onChange={handleInputChange}
-                >
-                  <option value="" disabled>
-                    Select Status
-                  </option>
-                  {status.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
+
               <div className="col-md-3">
                 <label className="form-label fw-bold">Priority</label>
                 <select
@@ -739,32 +915,32 @@ const EditTask = () => {
                   ))}
                 </select>
               </div>
-              <div className="col-md-4">
-                <div className="row">
-                  <div className="col-md-6">
-                    <label className="form-label fw-bold">Task Date</label>
-                    <input
-                      type="datetime-local"
-                      className="form-control"
-                      name="taskDate"
-                      value={formData.taskDate || ""}
-                      onChange={handleInputChange}
-                      disabled={userRole == "USER" ? true : false}
-                    />
-                  </div>
-                  <div className="col-md-6">
-                    <label className="form-label fw-bold">Due Date</label>
-                    <input
-                      type="datetime-local"
-                      className="form-control"
-                      name="dueDate"
-                      value={formData.dueDate || ""}
-                      onChange={handleInputChange}
-                      disabled={userRole == "USER" ? true : false}
-                    />
-                  </div>
-                </div>
+              {/* <div className="col-md-4">
+                <div className="row"> */}
+              <div className="col-md-3">
+                <label className="form-label fw-bold">Task Date</label>
+                <input
+                  type="datetime-local"
+                  className="form-control"
+                  name="taskDate"
+                  value={formData.taskDate || ""}
+                  onChange={handleInputChange}
+                  disabled={userRole == "USER" ? true : false}
+                />
               </div>
+              <div className="col-md-3">
+                <label className="form-label fw-bold">Due Date</label>
+                <input
+                  type="datetime-local"
+                  className="form-control"
+                  name="dueDate"
+                  value={formData.dueDate || ""}
+                  onChange={handleInputChange}
+                  disabled={userRole == "USER" ? true : false}
+                />
+              </div>
+              {/* </div>
+              </div> */}
             </div>
 
             <div className="row g-3">
@@ -783,68 +959,6 @@ const EditTask = () => {
                     </option>
                   ))}
                 </select>
-              </div>
-
-              <div className="col-md-3">
-                <label className="form-label fw-bold">Attachment</label>
-                <div className="position-relative">
-                  <input
-                    type="file"
-                    className="form-control"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    style={{
-                      display: file || !existingFileName ? "block" : "none",
-                    }}
-                  />
-                  {existingFileName && !file && (
-                    <div>
-                      <input
-                        type="text"
-                        className="form-control mb-2"
-                        value={existingFileName}
-                        readOnly
-                        style={{
-                          backgroundColor: "#f8f9fa",
-                          cursor: "not-allowed",
-                        }}
-                      />
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-outline-secondary"
-                        onClick={() => {
-                          if (fileInputRef.current) {
-                            fileInputRef.current.style.display = "block";
-                            fileInputRef.current.click();
-                          }
-                        }}
-                      >
-                        Change File
-                      </button>
-                    </div>
-                  )}
-                  {file && (
-                    <div className="mt-2">
-                      <small className="text-success d-block">
-                        New file selected: <strong>{file.name}</strong>
-                      </small>
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-outline-danger mt-1"
-                        onClick={() => {
-                          setFile(null);
-                          if (fileInputRef.current) {
-                            fileInputRef.current.value = "";
-                            fileInputRef.current.style.display =
-                              existingFileName ? "none" : "block";
-                          }
-                        }}
-                      >
-                        Remove New File
-                      </button>
-                    </div>
-                  )}
-                </div>
               </div>
 
               <div className="col-md-3">
@@ -1016,7 +1130,29 @@ const EditTask = () => {
                   </div>
                 )}
               </div>
+            </div>
+
+            <div className="row g-4 mt-1">
               <div className="col-md-3">
+                <label className="form-label fw-bold">Status</label>
+                <select
+                  name="status"
+                  className="form-select"
+                  value={formData.status}
+                  onChange={handleInputChange}
+                >
+                  <option value="" disabled>
+                    Select Status
+                  </option>
+                  {status.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+                  <div className="col-md-3">
                 {formData?.status === "COMPLETED" && (
                   <div className="row mt-3">
                     <div className="col-md-12 d-flex justify-content-start align-items-center gap-2">
@@ -1049,7 +1185,6 @@ const EditTask = () => {
                 )}
               </div>
             </div>
-
             <div className="d-flex justify-content-end gap-3 mt-5 pt-4 border-top">
               <button
                 type="submit"

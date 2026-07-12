@@ -114,6 +114,7 @@ import WeeklySummaryReport from "./Pages/Reports/Tasks/WeeklySummaryReport/Weekl
 import ChangeLogo from "./Pages/Settings/ChangeLogo";
 import UpcomingDeadlines from "./Pages/Task/UpcomingDeadlines";
 import OverdueTasks from "./Pages/Task/OverdueTasks";
+import DeletedTasks from "./Pages/Task/DeletedTasks";
 
 const App = () => {
   return (
@@ -164,6 +165,7 @@ const App = () => {
         <Route path="/tasks/pendingTasks" element={<PendingTasks />} />
         <Route path="/tasks/upcomingDeadlines" element={<UpcomingDeadlines />} />
         <Route path="/tasks/overdueTasks" element={<OverdueTasks />} />
+        <Route path="/admin/tasks/deleted" element={<DeletedTasks />} />
      
      
      

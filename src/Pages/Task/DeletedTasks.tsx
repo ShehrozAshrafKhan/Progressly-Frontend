@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { CiEdit } from "react-icons/ci";
 import { ShowMessage } from "../../Components/Common/ShowMessage";
 import config from "../../config";
 import axios from "axios";
@@ -35,7 +34,7 @@ type Task = {
   assignees?: Assignee[];
 };
 
-const Tasks = () => {
+const DeletedTasks = () => {
   const navigate = useNavigate();
   const [tblData, setTblData] = useState<Task[]>([]);
   const [showModal, setShowModal] = useState(false);
@@ -57,7 +56,7 @@ const Tasks = () => {
 
   const handleGetTasks = async () => {
     try {
-      const url = `${config.baseUrl}Tasks/GetTasks`;
+      const url = `${config.baseUrl}Tasks/GetDeletedTasks`;
       const response = await axios.get(url);
 
       if (
@@ -114,20 +113,20 @@ const Tasks = () => {
     }
   };
 
-  const handleDeleteTask = async (taskId: string) => {
-    if (!window.confirm("Are you sure you want to delete this task?")) return;
+  const handleUndoTask = async (taskId: string) => {
+    if (!window.confirm("Are you sure you want to restore this task?")) return;
     try {
-      const response = await axios.delete(`${config.baseUrl}Tasks/DeleteTask`, {
-        data: { taskId }
+      const response = await axios.patch(`${config.baseUrl}Tasks/UndoDeleteTask`, {
+        taskId
       });
       if (response.data.result.succeeded) {
-        ShowMessage(1, "Task deleted successfully.");
+        ShowMessage(1, "Task restored successfully.");
         handleGetTasks();
       } else {
-        ShowMessage(2, response.data.result.messages[0] || "Failed to delete task.");
+        ShowMessage(2, response.data.result.messages[0] || "Failed to restore task.");
       }
     } catch (e: any) {
-      ShowMessage(2, e.message || "Error deleting task");
+      ShowMessage(2, e.message || "Error restoring task");
     }
   };
 
@@ -349,8 +348,8 @@ useEffect(() => {
       <div className="container-fluid p-0">
         <div className="d-flex justify-content-between align-items-center mb-4 gap-3 flex-wrap">
         <div>
-          <h2 className="mb-1 fw-bold text-dark">Tasks</h2>
-          <p className="text-muted mb-0">Manage and track all project tasks.</p>
+          <h2 className="mb-1 fw-bold text-dark">Deleted Tasks</h2>
+          <p className="text-muted mb-0">View and restore deleted tasks.</p>
         </div>
         <div className="d-flex gap-2">
           <button
@@ -360,14 +359,6 @@ useEffect(() => {
           >
             <i className="bi bi-printer"></i>
             <span className="fw-medium">Print Report</span>
-          </button>
-          <button
-            className="btn btn-primary d-flex align-items-center gap-2 transition-base px-3 shadow-sm"
-            type="button"
-            onClick={handleAddNewTask}
-          >
-             <i className="bi bi-plus-lg"></i>
-             <span className="fw-medium">Add New Task</span>
           </button>
         </div>
       </div>
@@ -398,7 +389,6 @@ useEffect(() => {
                   <th className="px-4 py-3 text-uppercase fw-semibold" style={{ fontSize: '0.8rem', letterSpacing: '0.5px' }}>Module Name</th>
                   <th className="px-4 py-3 text-uppercase fw-semibold" style={{ fontSize: '0.8rem', letterSpacing: '0.5px' }}>Attachment</th>
                   <th className="px-4 py-3 text-uppercase fw-semibold" style={{ fontSize: '0.8rem', letterSpacing: '0.5px' }}>Assigned By</th>
-                  <th className="px-4 py-3 text-uppercase fw-semibold" style={{ fontSize: '0.8rem', letterSpacing: '0.5px' }}>Active</th>
                   <th className="px-4 py-3 text-uppercase fw-semibold text-end" style={{ fontSize: '0.8rem', letterSpacing: '0.5px' }}>Action</th>
                 </tr>
               </thead>
@@ -467,41 +457,14 @@ useEffect(() => {
                           <span className="text-muted small">Unassigned</span>
                         )}
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="form-check form-switch m-0">
-                          <input
-                            className="form-check-input cursor-pointer"
-                            type="checkbox"
-                            role="switch"
-                            id={`flexSwitchCheckChecked-${index}`}
-                            checked={item.isActive}
-                            onChange={() => handleInputChange(item.taskId)}
-                            style={{ 
-                              width: "2.5rem", 
-                              height: "1.25rem",
-                              backgroundColor: item.isActive ? 'var(--bs-primary)' : '',
-                              borderColor: item.isActive ? 'var(--bs-primary)' : ''
-                            }}
-                          />
-                        </div>
-                      </td>
                       <td className="px-4 py-3 text-end">
                          <button 
-                           className="btn btn-sm btn-light btn-icon text-primary hover-scale transition-base shadow-sm border me-1"
-                           onClick={() => handleEdit(item.taskId)}
-                           title="Edit Task"
+                           className="btn btn-sm btn-light btn-icon text-success hover-scale transition-base shadow-sm border"
+                           onClick={() => handleUndoTask(item.taskId)}
+                           title="Restore Task"
                          >
-                           <CiEdit size={18} />
+                           <i className="bi bi-arrow-counterclockwise"></i>
                          </button>
-                         {userRole === "SUPER_ADMIN" && (
-                           <button 
-                             className="btn btn-sm btn-light btn-icon text-danger hover-scale transition-base shadow-sm border"
-                             onClick={() => handleDeleteTask(item.taskId)}
-                             title="Delete Task"
-                           >
-                             <i className="bi bi-trash"></i>
-                           </button>
-                         )}
                       </td>
                     </tr>
                   ))
@@ -624,4 +587,4 @@ useEffect(() => {
   );
 };
 
-export default Tasks;
+export default DeletedTasks;

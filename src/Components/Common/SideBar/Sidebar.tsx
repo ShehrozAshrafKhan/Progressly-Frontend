@@ -85,6 +85,11 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, toggleSidebar }) => {
                   <li className="nav-item mb-1">
                     <NavLink to="/tasks/completedTasks" className={({ isActive }) => `nav-link rounded px-3 py-1 text-muted transition-base ${isActive ? 'text-primary fw-medium' : 'hover-text-dark'}`}>Completed Tasks</NavLink>
                   </li>
+                 { role!="USER" ?(<li className="nav-item mb-1">
+                    <NavLink to="/admin/tasks/deleted" className={({ isActive }) => `nav-link rounded px-3 py-1 text-muted transition-base ${isActive ? 'text-primary fw-medium' : 'hover-text-dark'}`}>Deleted Tasks</NavLink>
+                  </li>):""
+                  }
+                    
                 </ul>
               )}
             </li>

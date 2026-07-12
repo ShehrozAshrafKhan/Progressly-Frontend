@@ -107,6 +107,58 @@ const AddNewTask = () => {
     }
   };
 
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const droppedFile = e.dataTransfer.files[0];
+      setFile(droppedFile);
+      if (fileInputRef.current) {
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(droppedFile);
+        fileInputRef.current.files = dataTransfer.files;
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf("image") !== -1) {
+          const blob = items[i].getAsFile();
+          if (blob) {
+            setFile(blob);
+            if (fileInputRef.current) {
+              const dataTransfer = new DataTransfer();
+              dataTransfer.items.add(blob);
+              fileInputRef.current.files = dataTransfer.files;
+            }
+            // @ts-ignore
+            ShowMessage(1, "Image pasted successfully");
+          }
+        }
+      }
+    };
+    document.addEventListener("paste", handlePaste);
+    return () => {
+      document.removeEventListener("paste", handlePaste);
+    };
+  }, []);
+
   const handleClear = () => {
     setFormData({
       title: "",
@@ -227,7 +279,7 @@ const AddNewTask = () => {
              </div>
 
              <div className="row g-4 mb-4">
-               <div className="col-md-12">
+               <div className="col-md-9">
                  <label className="form-label fw-medium text-dark small mb-1">Description</label>
                  <textarea
                    className="form-control bg-light-soft border-0 px-3 py-2"
@@ -238,6 +290,63 @@ const AddNewTask = () => {
                    rows={3}
                  />
                </div>
+
+                          <div className="col-md-3">
+                  <label className="form-label fw-medium text-dark small mb-1">Attachment <span className="text-muted fw-normal">(Optional)</span></label>
+                  <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                    style={{
+                      border: isDragging ? "2px dashed #0d6efd" : "2px dashed #ced4da",
+                      borderRadius: "8px",
+                      padding: file ? "10px" : "20px",
+                      textAlign: "center",
+                      cursor: "pointer",
+                      backgroundColor: isDragging ? "#f8f9fa" : "#ffffff",
+                      transition: "all 0.3s ease",
+                      position: "relative"
+                    }}
+                  >
+                    <input
+                      type="file"
+                      style={{ display: "none" }}
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                    />
+                    {file ? (
+                      <div className="d-flex flex-column align-items-center">
+                        {file.type.startsWith("image/") ? (
+                          <img 
+                            src={URL.createObjectURL(file)} 
+                            alt="preview" 
+                            style={{ maxHeight: "80px", maxWidth: "100%", borderRadius: "8px", objectFit: "contain", marginBottom: "5px" }} 
+                          />
+                        ) : (
+                          <div style={{ fontSize: "30px", marginBottom: "5px" }}><i className="bi bi-file-earmark-text"></i></div>
+                        )}
+                        <span className="text-muted small text-truncate w-100 px-2">{file.name}</span>
+                        <button 
+                          type="button" 
+                          className="btn btn-sm btn-outline-danger mt-2 py-0 px-2" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setFile(null);
+                            if (fileInputRef.current) fileInputRef.current.value = "";
+                          }}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="text-muted">
+                        <i className="bi bi-cloud-arrow-up" style={{ fontSize: "24px" }}></i>
+                        <p className="mb-0 mt-1 small">Drag & drop or click</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
              </div>
 
              <div className="row g-4 mb-4">
@@ -347,15 +456,7 @@ const AddNewTask = () => {
                  </select>
                </div>
 
-               <div className="col-md-3">
-                 <label className="form-label fw-medium text-dark small mb-1">Attachment <span className="text-muted fw-normal">(Optional)</span></label>
-                 <input
-                   type="file"
-                   className="form-control bg-light-soft border-0 px-3 py-2 cursor-pointer"
-                   ref={fileInputRef}
-                   onChange={handleFileChange}
-                 />
-               </div>
+     
              </div>
 
              <div className="d-flex justify-content-end gap-3 pt-3 border-top">
