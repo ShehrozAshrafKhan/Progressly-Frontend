@@ -32,19 +32,6 @@ type Tag = {
   tagName: string;
   isActive: boolean;
 };
-type CodeInputType = {
-  taskCodeChangeId?: string;
-  type: "file" | "text" | null;
-  oldFileName?: string;
-  oldExtension?: string;
-  oldFilePath?: string;
-  newFileName?: string;
-  newExtension?: string;
-  newFilePath?: string;
-  showOld?: boolean;
-  showNew?: boolean;
-  // ...other properties
-};
 
 const EditTask = () => {
   const { user } = useUser();
@@ -153,6 +140,25 @@ const EditTask = () => {
     handleGetUploadedFiles();
   }, []);
 
+  const fetchFileContent = async (
+    taskCodeChangeId: string,
+    fileName: string,
+    fileType: string,
+  ): Promise<string> => {
+    try {
+      const response = await axios.get(
+        `${config.baseUrl}TaskCodeChanges/GetTaskCodeChangeFile`,
+        {
+          responseType: "blob",
+          params: { taskCodeChangeId, fileName, fileType },
+        },
+      );
+      return await response.data.text();
+    } catch {
+      return "";
+    }
+  };
+
   const handleGetUploadedFiles = async () => {
     try {
       const res = await axios.get(
@@ -162,13 +168,13 @@ const EditTask = () => {
         },
       );
 
-      const grouped: Record<string, CodeInputType[]> = {};
+      const grouped: Record<string, any[]> = {};
       if (res.data.data != null && res.data.data.length > 0) {
         for (const change of res.data.data) {
           const tagId = change.tagId;
           if (!grouped[tagId]) grouped[tagId] = [];
 
-          grouped[tagId].push({
+          const entry: any = {
             taskCodeChangeId: change.taskCodeChangeId,
             type: change.entryType,
             oldFileName: change.oldFileName,
@@ -179,7 +185,27 @@ const EditTask = () => {
             newFilePath: change.newFilePath,
             showOld: true,
             showNew: true,
-          });
+          };
+
+          // For text entries, load the actual file content into oldCode/newCode
+          if (change.entryType === "text") {
+            if (change.oldFileName && change.oldExtension) {
+              entry.oldCode = await fetchFileContent(
+                change.taskCodeChangeId,
+                `${change.oldFileName}${change.oldExtension}`,
+                "OLD",
+              );
+            }
+            if (change.newFileName && change.newExtension) {
+              entry.newCode = await fetchFileContent(
+                change.taskCodeChangeId,
+                `${change.newFileName}${change.newExtension}`,
+                "NEW",
+              );
+            }
+          }
+
+          grouped[tagId].push(entry);
         }
         console.log(grouped);
         setCodeInputs(grouped);
@@ -247,6 +273,7 @@ const EditTask = () => {
             })),
           );
         }
+        setRequireCodeUpload(taskData.requireCodeUpload || false);
       } else {
         ShowMessage(
           2,
@@ -428,32 +455,33 @@ const EditTask = () => {
     };
   }, []);
 
-  const handleClear = () => {
-    setFormData({
-      title: "",
-      taskNo: "",
-      description: "",
-      isActive: false,
-      status: "PENDING",
-      priority: "LOW",
-      estimatedHours: 0,
-      moduleId: "",
-      dueDate: "",
-      taskDate: "",
-    });
-    setFormTaskAssignee({ taskId: "", assignedby: "" });
-    setFile(null);
-    setExistingFileName("");
-    setAssignedUsers([]);
-    setAssignedTags([]);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
+  // const handleClear = () => {
+  //   setFormData({
+  //     title: "",
+  //     taskNo: "",
+  //     description: "",
+  //     isActive: false,
+  //     status: "PENDING",
+  //     priority: "LOW",
+  //     estimatedHours: 0,
+  //     moduleId: "",
+  //     dueDate: "",
+  //     taskDate: "",
+  //   });
+  //   setFormTaskAssignee({ taskId: "", assignedby: "" });
+  //   setFile(null);
+  //   setExistingFileName("");
+  //   setAssignedUsers([]);
+  //   setAssignedTags([]);
+  //   if (fileInputRef.current) fileInputRef.current.value = "";
+  // };
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     try {
       const preparedData = {
         ...formData,
+        requireCodeUpload: requireCodeUpload,
         dueDate: formData.dueDate === "" ? null : formData.dueDate,
         taskDate: formData.taskDate === "" ? null : formData.taskDate,
       };
@@ -516,26 +544,28 @@ const EditTask = () => {
               taskId,
               isCompletedRequest: isCompletedRequest,
             };
-
-            const completeResponse = await axios.patch(
-              completeUrl,
-              completeBody,
-            );
-
-            if (completeResponse.data.result.succeeded) {
-              ShowMessage(1, "Completed task request sent to admin");
-            } else {
-              ShowMessage(
-                2,
-                completeResponse.data.result.errors[0] ||
-                  "Failed to send completion request",
+            if (
+              completeBody.isCompletedRequest != null && completeBody.taskId != null ) {
+              const completeResponse = await axios.patch(
+                completeUrl,
+                completeBody,
               );
+
+              if (completeResponse.data.result.succeeded) {
+                ShowMessage(1, "Completed task request sent to admin");
+              } else {
+                ShowMessage(
+                  2,
+                  completeResponse.data.result.errors[0] ||
+                    "Failed to send completion request",
+                );
+              }
             }
           } catch (err: any) {
             ShowMessage(2, err.message || "Error sending completion request");
           }
         }
-        if (assignedTags.length > 0 && taskId) {
+        if (taskId) {
           const saveTagsUrl = `${config.baseUrl}TaskTag/SaveTaskTag`;
           const tagPayload = {
             taskId,
@@ -557,7 +587,8 @@ const EditTask = () => {
           }
         }
 
-        handleClear();
+        await handleGetTask();
+        await handleGetUploadedFiles();
       } else {
         ShowMessage(2, response.data.result.errors[0] || "Error saving task");
       }
@@ -573,28 +604,68 @@ const EditTask = () => {
   const handleSubmitCodeChanings = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const formData = new FormData();
-    formData.append("taskId", `${params.taskId}`); // Or whatever your taskId is
+    try {
+      let savedSomething = false;
 
-    // Loop through each tag
-    Object.entries(codeInputs).forEach(([tagId, entries]) => {
-      entries.forEach((entry, idx) => {
-        const prefix = `${tagId}_${idx}`; // Unique per tag/row
+      // Save tags first
+      if (params.taskId) {
+        const saveTagsUrl = `${config.baseUrl}TaskTag/SaveTaskTag`;
+        const tagPayload = {
+          taskId: params.taskId,
+          tagIds: assignedTags.map((tag) => tag.tagId),
+        };
+        const tagResponse = await axios.post(saveTagsUrl, tagPayload);
+        if (tagResponse?.data?.result?.succeeded) {
+          savedSomething = true;
+        }
+      }
 
-        console.log("Entry Type", entry.type);
-        // === FILE MODE ===
+      // Save task details (including requireCodeUpload)
+      if (params.taskId) {
+        const preparedData = {
+          ...formData,
+          requireCodeUpload: requireCodeUpload,
+          dueDate: formData.dueDate === "" ? null : formData.dueDate,
+          taskDate: formData.taskDate === "" ? null : formData.taskDate,
+        };
+        const updateTaskUrl = `${config.baseUrl}Tasks/UpdateTask`;
+        const updateResponse = await axios.patch(updateTaskUrl, preparedData);
+        if (updateResponse?.data?.result?.succeeded) {
+          savedSomething = true;
+        }
+      }
+
+      // Separate entries into new (create) and existing (update)
+      const newEntries: { tagId: string; entry: any; idx: number }[] = [];
+      const existingEntries: { tagId: string; entry: any; idx: number }[] = [];
+
+      Object.entries(codeInputs).forEach(([tagId, entries]) => {
+        const isTagAssigned = assignedTags.some((tag) => tag.tagId === tagId);
+        if (!isTagAssigned) return;
+
+        entries.forEach((entry, idx) => {
+          if (entry.taskCodeChangeId) {
+            existingEntries.push({ tagId, entry, idx });
+          } else {
+            newEntries.push({ tagId, entry, idx });
+          }
+        });
+      });
+
+      const buildFileFormData = (
+        fd: FormData,
+        tagId: string,
+        entry: any,
+        idx: number,
+      ) => {
+        const prefix = `${tagId}_${idx}`;
+
         if (entry.type === "file") {
-          if (entry.oldFile) {
-            formData.append(`${prefix}_oldFile`, entry.oldFile);
-          }
-          if (entry.newFile) {
-            formData.append(`${prefix}_newFile`, entry.newFile);
-          }
+          if (entry.oldFile) fd.append(`${prefix}_oldFile`, entry.oldFile);
+          if (entry.newFile) fd.append(`${prefix}_newFile`, entry.newFile);
         }
 
-        // === TEXT MODE ===
         if (entry.type === "text") {
-          // Create old file from text
           if (entry.oldCode && entry.oldFileName && entry.oldExtension) {
             const oldBlob = new Blob([entry.oldCode], { type: "text/plain" });
             const oldFile = new File(
@@ -602,10 +673,8 @@ const EditTask = () => {
               `${entry.oldFileName}${entry.oldExtension}`,
               { type: "text/plain" },
             );
-            formData.append(`${prefix}_oldFile`, oldFile);
+            fd.append(`${prefix}_oldFile`, oldFile);
           }
-
-          // Create new file from text
           if (entry.newCode && entry.newFileName && entry.newExtension) {
             const newBlob = new Blob([entry.newCode], { type: "text/plain" });
             const newFile = new File(
@@ -613,44 +682,75 @@ const EditTask = () => {
               `${entry.newFileName}${entry.newExtension}`,
               { type: "text/plain" },
             );
-            formData.append(`${prefix}_newFile`, newFile);
+            fd.append(`${prefix}_newFile`, newFile);
           }
         }
 
-        // Send metadata if needed (tagId, type, etc.)
-        if (entry.taskCodeChangeId) {
-          formData.append(`${prefix}_taskCodeChangeId`, entry.taskCodeChangeId);
-        }
-        formData.append(`${prefix}_tagId`, tagId);
-        formData.append(`${prefix}_type`, entry.type ?? "");
-        formData.append(
-          `${prefix}_isNew`,
-          entry.taskCodeChangeId ? "false" : "true",
+        fd.append(`${prefix}_tagId`, tagId);
+        fd.append(`${prefix}_type`, entry.type ?? "");
+      };
+
+      // === UPDATE existing entries ===
+      if (existingEntries.length > 0) {
+        const updateFd = new FormData();
+        updateFd.append("taskId", `${params.taskId}`);
+        existingEntries.forEach(({ tagId, entry, idx }) => {
+          const prefix = `${tagId}_${idx}`;
+          updateFd.append(`${prefix}_taskCodeChangeId`, entry.taskCodeChangeId);
+          buildFileFormData(updateFd, tagId, entry, idx);
+        });
+
+        const updateResponse = await axios.patch(
+          `${config.baseUrl}TaskCodeChanges/UpdateTaskCodeChanges`,
+          updateFd,
+          { headers: { "Content-Type": "multipart/form-data" } },
         );
-      });
-    });
 
-    try {
-      for (let pair of formData.entries()) {
-        console.log(pair[0], pair[1]);
+        if (!updateResponse.data.result.succeeded) {
+          ShowMessage(
+            2,
+            updateResponse.data.result.errors?.[0] || "Update failed.",
+          );
+          return;
+        }
+        savedSomething = true;
+        ShowMessage(1, "Code changes updated successfully.");
       }
-      const response = await axios.post(
-        `${config.baseUrl}TaskCodeChanges/UploadTaskCodeChanges`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        },
-      );
 
-      if (response.data.result.succeeded) {
-        ShowMessage(1, "Code changes uploaded successfully.");
-      } else {
-        ShowMessage(2, response.data.result.errors?.[0] || "Upload failed.");
+      // === CREATE new entries ===
+      if (newEntries.length > 0) {
+        const createFd = new FormData();
+        createFd.append("taskId", `${params.taskId}`);
+        newEntries.forEach(({ tagId, entry, idx }) => {
+          buildFileFormData(createFd, tagId, entry, idx);
+        });
+
+        const createResponse = await axios.post(
+          `${config.baseUrl}TaskCodeChanges/UploadTaskCodeChanges`,
+          createFd,
+          { headers: { "Content-Type": "multipart/form-data" } },
+        );
+
+        if (!createResponse.data.result.succeeded) {
+          ShowMessage(
+            2,
+            createResponse.data.result.errors?.[0] || "Upload failed.",
+          );
+          return;
+        }
+        savedSomething = true;
+        ShowMessage(1, "New code changes saved successfully.");
       }
+
+      if (!savedSomething) {
+        ShowMessage(2, "No changes to save.");
+        return;
+      }
+
+      // Refresh from server to get updated taskCodeChangeIds & file content
+      await handleGetUploadedFiles();
     } catch (err: any) {
-      ShowMessage(2, err.message || "Error uploading code changes.");
+      ShowMessage(2, err.message || "Error saving code changes.");
     }
   };
 
@@ -1152,7 +1252,7 @@ const EditTask = () => {
                 </select>
               </div>
 
-                  <div className="col-md-3">
+              <div className="col-md-3">
                 {formData?.status === "COMPLETED" && (
                   <div className="row mt-3">
                     <div className="col-md-12 d-flex justify-content-start align-items-center gap-2">
@@ -1545,19 +1645,17 @@ const EditTask = () => {
                                 </div>
                               </div>
 
-                              {/* Download Old */}
+                              {/* Download Old — show when filename+extension set and there's content in textarea */}
                               {input.oldFileName &&
                                 input.oldExtension &&
                                 input.oldCode && (
                                   <button
                                     type="button"
-                                    className="btn btn-sm btn-outline-success mt-2"
+                                    className="btn btn-sm btn-outline-success mt-2 me-2"
                                     onClick={() => {
                                       const blob = new Blob(
                                         [input.oldCode as string],
-                                        {
-                                          type: "text/plain",
-                                        },
+                                        { type: "text/plain" },
                                       );
                                       const link = document.createElement("a");
                                       link.href = URL.createObjectURL(blob);
@@ -1567,24 +1665,6 @@ const EditTask = () => {
                                     }}
                                   >
                                     📥 Download Old Code
-                                  </button>
-                                )}
-
-                              {input.oldFileName &&
-                                input.oldExtension &&
-                                input.taskCodeChangeId && (
-                                  <button
-                                    type="button"
-                                    className="btn btn-sm btn-outline-success mt-2"
-                                    onClick={() =>
-                                      handleDownloadFile(
-                                        input.taskCodeChangeId,
-                                        `${input.oldFileName}${input.oldExtension}`,
-                                        "OLD",
-                                      )
-                                    }
-                                  >
-                                    📥 Download Old File
                                   </button>
                                 )}
                             </>
@@ -1665,19 +1745,17 @@ const EditTask = () => {
                                 </div>
                               </div>
 
-                              {/* Download New */}
+                              {/* Download New — show when filename+extension set and there's content in textarea */}
                               {input.newFileName &&
                                 input.newExtension &&
                                 input.newCode && (
                                   <button
                                     type="button"
-                                    className="btn btn-sm btn-outline-success mt-2"
+                                    className="btn btn-sm btn-outline-success mt-2 me-2"
                                     onClick={() => {
                                       const blob = new Blob(
                                         [input.newCode as string],
-                                        {
-                                          type: "text/plain",
-                                        },
+                                        { type: "text/plain" },
                                       );
                                       const link = document.createElement("a");
                                       link.href = URL.createObjectURL(blob);
@@ -1687,23 +1765,6 @@ const EditTask = () => {
                                     }}
                                   >
                                     📥 Download New Code
-                                  </button>
-                                )}
-                              {input.newFileName &&
-                                input.newExtension &&
-                                input.taskCodeChangeId && (
-                                  <button
-                                    type="button"
-                                    className="btn btn-sm btn-outline-success mt-2"
-                                    onClick={() =>
-                                      handleDownloadFile(
-                                        input.taskCodeChangeId,
-                                        `${input.newFileName}${input.newExtension}`,
-                                        "NEW",
-                                      )
-                                    }
-                                  >
-                                    📥 Download New File
                                   </button>
                                 )}
                             </>

@@ -88,6 +88,7 @@ const AdminView = () => {
     pendingApprovals: 0,
     upcomingDeadlines: 0,
     overdueTasks: 0,
+    completedTasks: 0,
   });
   const [chartData, setChartData] = useState<AdminChartData | null>(null);
   const [chartLoading, setChartLoading] = useState(true);
@@ -99,13 +100,15 @@ const AdminView = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const [tasksRes, usersRes, users, approvalsRes, upcomingRes, overdueRes] = await Promise.all([
+      const [tasksRes, usersRes, users, approvalsRes, upcomingRes, overdueRes,completedRes] = await Promise.all([
         axios.get(`${config.baseUrl}Tasks/GetTasksCount`),
         axios.get(`${config.baseUrl}Users/GetAllActiveUsersCount`),
         axios.get(`${config.baseUrl}Users/GetAllUsersCount`),
         axios.get(`${config.baseUrl}Tasks/GetIsCompletedTasksCount`),
         axios.get(`${config.baseUrl}Tasks/GetUpcomingDeadlinesTasksCount`),
         axios.get(`${config.baseUrl}Tasks/GetOverdueTasksCount`),
+        axios.get(`${config.baseUrl}Tasks/GetCompletedAndClosedTasksCount`),
+        
       ]);
       setFormData({
         totalTasks: tasksRes.data?.data || 0,
@@ -114,6 +117,7 @@ const AdminView = () => {
         pendingApprovals: approvalsRes.data?.data || 0,
         upcomingDeadlines: upcomingRes.data?.data || 0,
         overdueTasks: overdueRes.data?.data || 0,
+        completedTasks: completedRes.data?.data || 0,
       });
     } catch (error) {
       ShowMessage(2, "Error fetching dashboard data " + error);
@@ -141,6 +145,7 @@ const AdminView = () => {
     else if (type === "USERS") navigate("/users/getAllUsers");
     else if (type === "UPCOMING_DEADLINES") navigate("/tasks/upcomingDeadlines");
     else if (type === "OVERDUE_TASKS") navigate("/tasks/overdueTasks");
+    else if (type === "COMPLETED_TASKS") navigate("/tasks/completedTasks");
     else navigate("/admin/tasks/pendingApprovals");
   };
 
@@ -160,6 +165,7 @@ const AdminView = () => {
 
   const statCards = [
     { label: "Total Tasks", value: formData.totalTasks, icon: "bi-card-checklist", color: "primary", type: "TOTAL_TASKS" },
+    { label: "Completed Tasks", value: formData.completedTasks, icon: "bi-check-circle-fill", color: "success", type: "COMPLETED_TASKS" },
     { label: "Pending Approvals", value: formData.pendingApprovals, icon: "bi-clock-history", color: "warning", type: "PENDING_APPROVALS" },
     { label: "Upcoming Deadlines", value: formData.upcomingDeadlines, icon: "bi-calendar-event", color: "info", type: "UPCOMING_DEADLINES" },
     { label: "Overdue Tasks", value: formData.overdueTasks, icon: "bi-exclamation-octagon", color: "danger", type: "OVERDUE_TASKS" },
