@@ -29,11 +29,13 @@ const ChangeLogo = () => {
 
   const [formData, setFormData] = useState({
     applicationName: "",
+    redirectLink:""
   });
 
   const handleClear = () => {
     setFormData({
       applicationName: "",
+      redirectLink:""
     });
   };
 
@@ -44,12 +46,17 @@ const ChangeLogo = () => {
     ShowMessage(2,"Application Name is required");
     return;
   }
+  if (!formData.redirectLink) {
+    ShowMessage(2,"Application Link is required");
+    return;
+  }
   if (!file) {
     ShowMessage(2,"Logo file is required");
     return;
   }
   const submitData = new FormData();
   submitData.append("applicationName", formData.applicationName);
+  submitData.append("redirectLink", formData.redirectLink);
   submitData.append("file", file);
 
   try {
@@ -95,13 +102,23 @@ const ChangeLogo = () => {
         <form className="form" onSubmit={handleSubmit}>
           <div className="p-5 border rounded-3 card shadow-sm">
             <div className="row g-3 align-items-center">
-                <div className="col-md-5">
+                <div className="col-md-4">
                 <label className="form-label fw-bold">Application Name</label>
                 <input
                   type="text"
                   className="form-control"
                   name="applicationName"
                   value={formData.applicationName}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="col-md-4">
+                <label className="form-label fw-bold">Application Link</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="redirectLink"
+                  value={formData.redirectLink}
                   onChange={handleInputChange}
                 />
               </div>

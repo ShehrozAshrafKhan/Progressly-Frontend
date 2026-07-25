@@ -3,6 +3,7 @@ import Sidebar from "../Components/Common/SideBar/Sidebar";
 import { useUser } from "../contexts/UserContext";
 import Cookies from "js-cookie";
 import ProfileMenu from "../Components/Common/NavBar/ProfileMenu";
+import NotificationBell from "../Components/Common/NavBar/NotificationBell";
 import logo50 from "../assets/logo50.png";
 import { Link } from "react-router-dom";
 import axios from "axios";
@@ -63,7 +64,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
 
           {/* Right-side content */}
-          <div className="navbar-nav ms-auto align-items-center">
+          <div className="navbar-nav ms-auto align-items-center d-flex flex-row">
+            <NotificationBell />
             {user && (
               <ProfileMenu
                 name={user.name}

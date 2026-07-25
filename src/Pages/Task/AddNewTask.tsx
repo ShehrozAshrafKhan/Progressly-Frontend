@@ -215,9 +215,14 @@ const AddNewTask = () => {
           const assignUrl = `${config.baseUrl}TaskAssignee/SaveTaskAssignee`;
           const assignBody = {
             taskId,
-            assignedby: formTaskAssignee.assignedby,
+            assignedBy: formTaskAssignee.assignedby,
           };
-          await axios.post(assignUrl, assignBody);
+          const assignResponse = await axios.post(assignUrl, assignBody);
+          if (assignResponse.data.result.succeeded) {
+            ShowMessage(1, "Task assigned successfully");
+          } else {
+            ShowMessage(2, assignResponse.data.result.errors?.[0] || "Failed to assign task");
+          }
         }
 
         handleClear();

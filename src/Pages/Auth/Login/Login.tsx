@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import config from "../../../config";
 import Cookies from "js-cookie";
 import { ShowMessage } from "../../../Components/Common/ShowMessage";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useUser } from "../../../contexts/UserContext";
 import { jwtDecode } from "jwt-decode";
 import logo100 from "../../../assets/logo100.png";
@@ -130,7 +130,7 @@ const Login = () => {
             <div className="mb-4">
               <label htmlFor="password" className="form-label text-dark fw-medium small mb-1 d-flex justify-content-between">
                 <span>Password</span>
-                <a href="#" className="text-primary text-decoration-none" style={{ fontSize: '0.8rem' }}>Forgot password?</a>
+                <Link to="/forgot-password" className="text-primary text-decoration-none" style={{ fontSize: '0.8rem' }}>Forgot password?</Link>
               </label>
               <input
                 type="password"

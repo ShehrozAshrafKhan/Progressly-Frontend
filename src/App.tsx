@@ -115,6 +115,9 @@ import ChangeLogo from "./Pages/Settings/ChangeLogo";
 import UpcomingDeadlines from "./Pages/Task/UpcomingDeadlines";
 import OverdueTasks from "./Pages/Task/OverdueTasks";
 import DeletedTasks from "./Pages/Task/DeletedTasks";
+import ForgotPassword from "./Pages/Auth/ForgotPassword";
+import ResetPassword from "./Pages/Auth/ResetPassword";
+import Notifications from "./Pages/Settings/Notifications";
 
 const App = () => {
   return (
@@ -132,6 +135,8 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/users/getAllActiveUsers" element={<ActiveUsers />} />
         <Route path="/users/getAllUsers" element={<Users />} />
@@ -180,6 +185,7 @@ const App = () => {
 
 
         <Route path="/settings/changeLogo" element={<ChangeLogo />} />
+        <Route path="/notifications" element={<Notifications />} />
 
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route

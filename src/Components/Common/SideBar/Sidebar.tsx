@@ -32,6 +32,14 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, toggleSidebar }) => {
               </NavLink>
             </li>
 
+            {/* Notifications */}
+            <li className="nav-item">
+              <NavLink to="/notifications" className={({ isActive }) => `nav-link rounded-lg px-3 py-2 text-dark transition-base d-flex align-items-center ${isActive ? 'bg-light-soft text-primary fw-medium' : 'hover-bg-light'}`}>
+                <i className="bi bi-bell me-3 fs-5"></i>
+                <span>Notifications</span>
+              </NavLink>
+            </li>
+
             {/* Configurations with sub-links */}
             {role!=="USER"?<>
             <li className="nav-item">
